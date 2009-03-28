@@ -1,16 +1,28 @@
 package simon.client.latency;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+
 import javax.swing.JApplet;
+import javax.swing.JButton;
+import javax.swing.JEditorPane;
+import javax.swing.JList;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 
-public class Applet extends JApplet {
+import org.apache.log4j.Logger;
 
-    JTextField field;
-
+public class Applet extends JApplet implements ActionListener{
+	//static Logger log = Logger.getLogger(Applet.class);
+	
+	JTextArea logArea;
+    JButton startButton;
+    
     public void init() {
-        //Execute a job on the event-dispatching thread:
-        //creating this applet's GUI.
+
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -20,33 +32,33 @@ public class Applet extends JApplet {
         } catch (Exception e) {
             System.err.println("createGUI didn't successfully complete");
         }
-
-        addItem(false, "initializing... ");
     }
 
     private void createGUI() {        
         //Create the text field and make it uneditable.
-        field = new JTextField();
-        field.setEditable(false);
-
+        logArea = new JTextArea();
+        //field.setEditable(false);
+        
+        startButton = new JButton("Start");
+        startButton.addActionListener(this);
         //Set the layout manager so that the text field will be
         //as wide as possible.
-        setLayout(new java.awt.GridLayout(1,0));
+        setLayout(new java.awt.GridLayout(0,1));
 
         //Add the text field to the applet.
-        add(field);
+       // add(startButton);
+        add(logArea);
     }
 
     public void start() {
-        addItem(false, "starting... ");
+    	performTests();
     }
 
     public void stop() {
-        addItem(false, "stopping... ");
+    	
     }
 
     public void destroy() {
-        addItem(false, "preparing for unloading...");
         cleanUp();
     }
     
@@ -56,15 +68,15 @@ public class Applet extends JApplet {
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    remove(field);
+                    remove(logArea);
                 }
             });
         } catch (Exception e) {
             System.err.println("cleanUp didn't successfully complete");
         }
-        field = null;
+        logArea = null;
     }
-
+/*
     private void addItem(boolean alreadyInEDT, String newWord) {
         if (alreadyInEDT) {
             addItem(newWord);
@@ -86,9 +98,38 @@ public class Applet extends JApplet {
         
     //Invoke this method ONLY from the event-dispatching thread.
     private void addItem(String newWord) {
-        String t = field.getText();
-        System.out.println(newWord);
-        field.setText(t + newWord);
+        //String t = field.getText();
+        //System.out.println(newWord);
+        //field.setText(t + newWord + ",\n");
+        logArea.append(newWord + "\n");
     }
+*/
+	public void actionPerformed(ActionEvent e) {
+		//log.info("ActionEvent " + e);
+		if (startButton.equals(e.getSource())) {
+			startButton.disable();
+			//log.info("StartButton");
+			performTests();
+			startButton.enable();
+		}
+	}
+	
+	private void add2logArea(String newWord) {
+        logArea.append(newWord + "\n");
+        logArea.repaint();
+    }	
+	
+	public void performTests() {
+		String[] sites = {"www.arin.net", "www.nic.br", "www.nic.cl", "www.nic.pe", "www.nic.bo", "www.nic.ar", "www.nic.uy", "www.nic.pa", "www.nic.co", "www.nic.ve", "www.nic.ec"};
+		
+		for(String site:sites) {
+			try {
+				//log.info("Latency to " + site + " is "+ LatencyTester.getTcpLatency(site) + " ms");
+				add2logArea("Latency to " + site + " is "+ LatencyTester.getTcpLatency(site) + " ms");
+			} catch (IOException e) {
+				System.err.println("Error during test: " +e );
+			}
+		}
+	}
 
 }
