@@ -1,57 +1,90 @@
 package simon.client.latency;
 
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
 
+import javax.swing.BoxLayout;
 import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
+import java.awt.*;
+import javax.swing.*;
 
 public class Applet extends JApplet implements ActionListener{
 	//static Logger log = Logger.getLogger(Applet.class);
 	
+	int WIDTH = 320;
+	int HEIGHT = 480;
+	
 	JTextArea logArea;
     JButton startButton;
+    JTable table;
+    String[] sites = {"www.arin.net", "www.nic.br", "www.nic.cl", "www.nic.pe", "www.nic.bo", "www.nic.ar", "www.nic.uy", "www.nic.pa", "www.nic.co", "www.nic.ve", "www.nic.ec"};
+    LatencyTester latencyTester;
     
     public void init() {
-
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     createGUI();
+                    initTets();
                 }
             });
         } catch (Exception e) {
             System.err.println("createGUI didn't successfully complete");
+            e.printStackTrace();
         }
+
     }
 
-    private void createGUI() {        
-        //Create the text field and make it uneditable.
-        logArea = new JTextArea();
-        //field.setEditable(false);
-        
-        startButton = new JButton("Start");
-        startButton.addActionListener(this);
-        //Set the layout manager so that the text field will be
-        //as wide as possible.
-        setLayout(new java.awt.GridLayout(0,1));
+    private void createGUI() {    
+    	// Sets a BoxLayout
+    	Container contentPane = getContentPane();
+    	contentPane.setLayout (new BoxLayout (contentPane, BoxLayout.Y_AXIS));
 
-        //Add the text field to the applet.
-       // add(startButton);
-        add(logArea);
+        
+    	resize(WIDTH, HEIGHT);
+    	
+    	// Label
+    	Label label = new Label("Simon-Tester");
+    	label.setFont(new Font(null, Font.BOLD, 18));
+    	add(label);
+    	
+    	//Add the text field to the applet.
+    	startButton = new JButton("Start");
+        startButton.addActionListener(this);
+        add(startButton);
+    	
+    	// Table
+    	table = new JTable();
+    	table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+    	JScrollPane scrollPane = new JScrollPane(table);
+    	add(scrollPane);
+    	
+    	// Logs
+        logArea = new JTextArea();
+       // add(logArea);
+
     }
 
     public void start() {
-    	performTests();
+    	
     }
 
     public void stop() {
@@ -59,13 +92,7 @@ public class Applet extends JApplet implements ActionListener{
     }
 
     public void destroy() {
-        cleanUp();
-    }
-    
-    private void cleanUp() {
-        //Execute a job on the event-dispatching thread:
-        //taking the text field out of this applet.
-        try {
+    	try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     remove(logArea);
@@ -76,40 +103,18 @@ public class Applet extends JApplet implements ActionListener{
         }
         logArea = null;
     }
-/*
-    private void addItem(boolean alreadyInEDT, String newWord) {
-        if (alreadyInEDT) {
-            addItem(newWord);
-        } else {
-            final String word = newWord;
-            //Execute a job on the event-dispatching thread:
-            //invoking addItem(newWord).
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        addItem(word);
-                    }
-                });
-            } catch (Exception e) {
-                System.err.println("addItem didn't successfully complete");
-            }
-        }
-    }
-        
-    //Invoke this method ONLY from the event-dispatching thread.
-    private void addItem(String newWord) {
-        //String t = field.getText();
-        //System.out.println(newWord);
-        //field.setText(t + newWord + ",\n");
-        logArea.append(newWord + "\n");
-    }
-*/
+    
 	public void actionPerformed(ActionEvent e) {
+		
 		//log.info("ActionEvent " + e);
 		if (startButton.equals(e.getSource())) {
 			startButton.disable();
-			//log.info("StartButton");
-			performTests();
+			startButton.setText("Cancel");
+			for(LatencyLocation sample:latencyTester.getSamples()) {
+				AppletTester appletTester = new AppletTester(this, this.latencyTester, sample);
+				appletTester.start();
+			}
+			startButton.setText("Again");
 			startButton.enable();
 		}
 	}
@@ -119,17 +124,29 @@ public class Applet extends JApplet implements ActionListener{
         logArea.repaint();
     }	
 	
-	public void performTests() {
-		String[] sites = {"www.arin.net", "www.nic.br", "www.nic.cl", "www.nic.pe", "www.nic.bo", "www.nic.ar", "www.nic.uy", "www.nic.pa", "www.nic.co", "www.nic.ve", "www.nic.ec"};
-		
-		for(String site:sites) {
-			try {
-				//log.info("Latency to " + site + " is "+ LatencyTester.getTcpLatency(site) + " ms");
-				add2logArea("Latency to " + site + " is "+ LatencyTester.getTcpLatency(site) + " ms");
-			} catch (IOException e) {
-				System.err.println("Error during test: " +e );
+	public void initTets() {
+		if (latencyTester==null) {
+			latencyTester= new LatencyTester(sites);
+			table.setModel(latencyTester.getTableModel());
+			
+			for(String site:sites) {
+				latencyTester.add(new LatencyLocation(site));
 			}
 		}
 	}
+	
+	public void endTest() {
+		// Post results
+		try {
+			LatencyTester.postResults("http://127.0.0.1/~jmguzman/tests/getresults.php", latencyTester.getSamples());
+		} catch (HttpException e) {
+			System.err.println("Error during results sending: " +e );
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("Error during results sending: " +e );
+			e.printStackTrace();
+		}
+	}
 
+	
 }
