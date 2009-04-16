@@ -45,7 +45,7 @@ public class LatencyLocation {
 	}
 
 	public Object getData() {
-		return this.destination + ", " + this.samples + ", " + this.getAverage()  + ", " + this.getStdDev() + "\n";
+		return this.destination +  ", " + this.getAverage()  + ", " + this.getStdDev() + ", " + getNumSamples() + " " + this.samples + "\n";
 	}
 
 	static public Class<?> getColumnClass(int columnIndex) {

@@ -37,6 +37,7 @@ public class Applet extends JApplet implements ActionListener{
     JTable table;
     String[] sites = {"www.arin.net", "www.nic.br", "www.nic.cl", "www.nic.pe", "www.nic.bo", "www.nic.ar", "www.nic.uy", "www.nic.pa", "www.nic.co", "www.nic.ve", "www.nic.ec"};
     LatencyTester latencyTester;
+    int numSamples = 10;
     
     public void init() {
         try {
@@ -95,6 +96,7 @@ public class Applet extends JApplet implements ActionListener{
     	try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                	endTest();
                     remove(logArea);
                 }
             });
@@ -106,14 +108,13 @@ public class Applet extends JApplet implements ActionListener{
     
 	public void actionPerformed(ActionEvent e) {
 		
-		//log.info("ActionEvent " + e);
 		if (startButton.equals(e.getSource())) {
 			startButton.disable();
 			startButton.setText("Cancel");
 			for(LatencyLocation sample:latencyTester.getSamples()) {
-				AppletTester appletTester = new AppletTester(this, this.latencyTester, sample);
+				AppletTester appletTester = new AppletTester(this, this.latencyTester, sample, numSamples);
 				appletTester.start();
-			}
+			}			
 			startButton.setText("Again");
 			startButton.enable();
 		}
