@@ -8,31 +8,30 @@ public class AppletTester extends Thread {
 	LatencyLocation sample;
 	LatencyTester latencyTester;
 	Applet applet;
-	AppletTester(Applet applet, LatencyTester latencyTester, LatencyLocation sample) {
+	int num;
+	AppletTester(Applet applet, LatencyTester latencyTester, LatencyLocation sample, int num) {
 		this.applet = applet;
 		this.sample = sample;
 		this.latencyTester = latencyTester;
+		this.num = num;
 	}
 	
 	public void run() {
-		System.out.println("Starting test " + sample);
+		//System.out.println("Starting test " + sample);
         try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					try {		
-						sample = latencyTester.getTcpLatency(sample);
-						System.out.println(sample);
-						applet.repaint();
-					} catch (IOException e) {
-						System.err.println("Error during test: " +e );
-					}
-					
-				}
-            });
+        	for(int i=0; i<num; i++) {
+        		sample = latencyTester.getTcpLatency(sample);
+    			System.out.println(sample);
+                SwingUtilities.invokeAndWait(new Runnable() {
+    				public void run() {
+    					applet.repaint();	
+    				}
+                });
+        	}
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("Finish test " + sample);
+        //System.out.println("Finish test " + sample);
     }
 }
