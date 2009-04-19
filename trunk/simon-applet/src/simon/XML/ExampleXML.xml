@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simon>
+<ver>1</ver>
+<date>2009-04-20</date>
+<time>13:20:00.000-05:00</time>
+<local_ip>200.7.85.1</local_ip>
+<test>
+	<destination_ip>190.1.1.1</destination_ip>
+	<type>tcp_connection</type>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<jitter>10</jitter>
+	<loss_por>0</loss_por>
+</test>
+<test>
+	<destination_ip>200.1.1.1</destination_ip>
+	<type>icmp_echo</type>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<jitter>10</jitter>
+	<loss_por>0</loss_por>
+</test>
+</simon>
