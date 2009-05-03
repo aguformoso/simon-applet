@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<simon xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<simon xmlns="http://simon.lacnic.net" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://simon.lacnic.net http://simon.lacnic.net/SimonXMLSchema.xsd">
 <version>1</version>
 <date>2009-04-20</date>
 <time>13:20:00.000-05:00</time>
@@ -21,7 +21,7 @@
 	<min_rtt>114</min_rtt>
 	<max_rtt>130</max_rtt>
 	<ave_rtt>120</ave_rtt>
-	<dev_rtt>10</dev_rtt>
-	<packet_loss>0</packet_loss>
+	<jitter>10</jitter>
+	<loss_por>0</loss_por>
 </test>
 </simon>
