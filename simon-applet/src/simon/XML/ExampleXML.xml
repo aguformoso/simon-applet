@@ -6,7 +6,7 @@
 <local_ip>200.7.85.1</local_ip>
 <test>
 	<destination_ip>190.1.1.1</destination_ip>
-	<type>tcp_connection</type>
+	<testtype>tcp_connection</testtype>
 	<number_probes>3</number_probes>
 	<min_rtt>114</min_rtt>
 	<max_rtt>130</max_rtt>
@@ -16,7 +16,7 @@
 </test>
 <test>
 	<destination_ip>200.1.1.1</destination_ip>
-	<type>icmp_echo</type>
+	<testtype>icmp_echo</testtype>
 	<number_probes>3</number_probes>
 	<min_rtt>114</min_rtt>
 	<max_rtt>130</max_rtt>

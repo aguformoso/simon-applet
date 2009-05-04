@@ -25,7 +25,7 @@
 <xsd:complexType name="Result">
         <xsd:sequence> 
             <xsd:element name="destination_ip" type="IP4" />
-            <xsd:element name="type" type="SimonType" />
+            <xsd:element name="testtype" type="SimonType" />
             <xsd:element name="number_probes" type="xsd:positiveInteger"/>
             <xsd:element name="min_rtt" type="xsd:nonNegativeInteger"/>
             <xsd:element name="max_rtt" type="xsd:nonNegativeInteger"/>
