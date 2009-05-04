@@ -12,7 +12,7 @@
 	<max_rtt>130</max_rtt>
 	<ave_rtt>120</ave_rtt>
 	<dev_rtt>10</dev_rtt>
-	<loss_por>0</loss_por>
+	<packet_loss>0</packet_loss>
 </test>
 <test>
 	<destination_ip>200.1.1.1</destination_ip>
