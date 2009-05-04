@@ -11,7 +11,7 @@
 	<min_rtt>114</min_rtt>
 	<max_rtt>130</max_rtt>
 	<ave_rtt>120</ave_rtt>
-	<jitter>10</jitter>
+	<dev_rtt>10</dev_rtt>
 	<loss_por>0</loss_por>
 </test>
 <test>
