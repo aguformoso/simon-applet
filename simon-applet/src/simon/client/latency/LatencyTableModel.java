@@ -1,5 +1,6 @@
 package simon.client.latency;
 
+
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 

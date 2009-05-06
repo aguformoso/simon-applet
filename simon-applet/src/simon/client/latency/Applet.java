@@ -1,5 +1,6 @@
 package simon.client.latency;
 
+
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.Label;

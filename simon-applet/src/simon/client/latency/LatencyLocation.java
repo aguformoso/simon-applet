@@ -1,5 +1,6 @@
 package simon.client.latency;
 
+
 import java.util.ArrayList;
 
 public class LatencyLocation {
