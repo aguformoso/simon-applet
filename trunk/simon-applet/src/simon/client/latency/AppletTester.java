@@ -1,5 +1,6 @@
 package simon.client.latency;
 
+
 import java.io.IOException;
 
 import javax.swing.SwingUtilities;

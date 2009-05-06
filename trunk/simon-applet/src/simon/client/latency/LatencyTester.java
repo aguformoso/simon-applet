@@ -1,5 +1,6 @@
 package simon.client.latency;
 
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
