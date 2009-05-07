@@ -2,7 +2,7 @@
 <simon xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 <version>1</version>
 <date>2009-04-20</date>
-<time>13:20:00.000-05:00</time>
+<time>13:20:00-05:00</time>
 <local_ip>200.7.85.1</local_ip>
 <test>
 	<destination_ip>190.1.1.1</destination_ip>
