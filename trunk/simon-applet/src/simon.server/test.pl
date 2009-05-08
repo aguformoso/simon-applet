@@ -9,7 +9,6 @@ use DBI;
 
 # You also need: Bundle::DBD::Pg
 
-
 my $date = strftime "%d %m %Y", localtime;
 @campos=split(/ /,$date);
 my $day=$campos[0];
@@ -64,9 +63,9 @@ foreach my $test (@{$ref->{test}}) {
 $dbh->disconnect();
 
 
-sub getCountryOrigin{
-
-}
+#sub getCountryOrigin{
+#
+#}
 
 sub getCountryDestination{
 # I get the Destination Country by checking the country in the testpoints database.
