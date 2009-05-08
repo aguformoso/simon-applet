@@ -1,6 +1,5 @@
 package simon.client.latency;
 
-
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
@@ -14,20 +13,15 @@ public class LatencyTableModel implements TableModel {
 
 	public void addTableModelListener(TableModelListener l) {
 		// TODO Auto-generated method stub
-
 	}
 
 	public void removeTableModelListener(TableModelListener l) {
 		// TODO Auto-generated method stub
-
 	}
 
 	public void setValueAt(Object value, int rowIndex, int columnIndex) {
 		// TODO Auto-generated method stub
-
 	}
-	
-	
 	
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		return false;
@@ -42,7 +36,7 @@ public class LatencyTableModel implements TableModel {
 	}
 	
 	public int getRowCount() {
-		return this.latencyTester.samples.size();
+		return this.latencyTester.location.size();
 	}
 
 	public Class<?> getColumnClass(int columnIndex) {
@@ -50,7 +44,7 @@ public class LatencyTableModel implements TableModel {
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		LatencyLocation sample = this.latencyTester.samples.get(rowIndex);
+		LatencyLocation sample = this.latencyTester.location.get(rowIndex);
 		return sample.getColumn(columnIndex);
 	}
 }

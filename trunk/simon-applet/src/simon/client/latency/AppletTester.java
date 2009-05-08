@@ -1,8 +1,6 @@
 package simon.client.latency;
 
-
-import java.io.IOException;
-
+//import java.io.IOException;
 import javax.swing.SwingUtilities;
 
 public class AppletTester extends Thread {
@@ -15,19 +13,25 @@ public class AppletTester extends Thread {
 		this.sample = sample;
 		this.latencyTester = latencyTester;
 		this.num = num;
-	}
+	}   
 	
 	public void run() {
 		//System.out.println("Starting test " + sample);
         try {
         	for(int i=0; i<num; i++) {
-        		sample = latencyTester.getTcpLatency(sample);
-    			System.out.println(sample);
-                SwingUtilities.invokeAndWait(new Runnable() {
-    				public void run() {
-    					applet.repaint();	
-    				}
-                });
+        		  sample = latencyTester.getUDPLatency(sample);
+       		      System.out.println(sample);
+                  SwingUtilities.invokeAndWait(new Runnable() {
+      			    public void run() {
+      				  applet.repaint();	
+      			    }
+                  });
+                  // NTP servers generally have a rate limit...
+                  // It would be better to put 16s here, but, in a real world
+                  // it is possible to use less (about 5s, for example)
+                  // At NTP.br we have a "2s between packets" limit, but a short
+                  // burst of 1 packet per second is allowed.
+        		  Thread.sleep(16000);  
         	}
         }
         catch (Exception e) {
