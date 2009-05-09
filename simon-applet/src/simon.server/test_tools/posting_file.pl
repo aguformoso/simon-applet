@@ -5,7 +5,7 @@ use LWP::UserAgent;
 use HTTP::Request::Common;
 use FileHandle;
 
-open FILE, "../simon/XML/ExampleXML.xml" or die "Couldn't open file: $!"; 
+open FILE, "../../simon/XML/ExampleXML.xml" or die "Couldn't open file: $!"; 
 my $fh = join("", <FILE>); 
 close FILE;
 
