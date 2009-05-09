@@ -5,7 +5,7 @@
 <time>13:20:00-05:00</time>
 <local_country>UY</local_country>
 <test>
-	<destination_ip>190.1.1.1</destination_ip>
+	<destination_ip>200.91.84.137</destination_ip>
 	<testtype>tcp_connection</testtype>
 	<number_probes>3</number_probes>
 	<min_rtt>114</min_rtt>
@@ -16,7 +16,7 @@
 	<packet_loss>0</packet_loss>
 </test>
 <test>
-	<destination_ip>200.1.1.1</destination_ip>
+	<destination_ip>200.85.39.66</destination_ip>
 	<testtype>icmp_echo</testtype>
 	<number_probes>3</number_probes>
 	<min_rtt>114</min_rtt>
