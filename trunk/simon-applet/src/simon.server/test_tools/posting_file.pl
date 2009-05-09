@@ -13,7 +13,7 @@ print "$fh \n";
 
 my $userAgent = LWP::UserAgent->new(agent => 'perl post');
 
-my $response = $userAgent->request(POST 'http://localhost/cgi-bin/simonpost.cgi', 
+my $response = $userAgent->request(POST 'http://simon.lacnic.net/cgi-bin/simonpost.cgi', 
 Content_Type => 'text/xml',
 Content => $fh);
 

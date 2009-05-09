@@ -1,0 +1,2 @@
+1,Punto_de_Prueba_tcp,tcp_connection,190.1.1.1,UY,2009-05-06 00:00:00
+2,Punto_de_Prueba_icmp,icmp_echo,200.1.1.1,BR,2009-05-06 00:00:00

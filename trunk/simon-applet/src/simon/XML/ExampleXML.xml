@@ -3,7 +3,7 @@
 <version>1</version>
 <date>2009-04-20</date>
 <time>13:20:00-05:00</time>
-<local_ip>200.7.85.1</local_ip>
+<local_country>UY</local_country>
 <test>
 	<destination_ip>190.1.1.1</destination_ip>
 	<testtype>tcp_connection</testtype>
@@ -12,6 +12,7 @@
 	<max_rtt>130</max_rtt>
 	<ave_rtt>120</ave_rtt>
 	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
 	<packet_loss>0</packet_loss>
 </test>
 <test>
@@ -22,6 +23,7 @@
 	<max_rtt>130</max_rtt>
 	<ave_rtt>120</ave_rtt>
 	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
 	<packet_loss>0</packet_loss>
 </test>
 </simon>
