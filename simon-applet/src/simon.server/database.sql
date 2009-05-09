@@ -15,6 +15,10 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 
 SET search_path = public, pg_catalog;
 
+CREATE ROLE simon LOGIN
+  ENCRYPTED PASSWORD 'md51afd06fdc7fec1a9c7662db4863e8615'
+  NOSUPERUSER NOINHERIT NOCREATEDB NOCREATEROLE;
+
 --
 -- Name: results_id_seq; Type: SEQUENCE; Schema: public; Owner: simon
 --
@@ -55,6 +59,7 @@ CREATE TABLE results (
     max_rtt integer,
     ave_rtt integer,
     dev_rtt integer,
+    median_rtt integer,
     packet_loss integer,
     country_origin character(2),
     country_destination character(2)

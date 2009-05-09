@@ -1,16 +1,17 @@
 #!/opt/local/bin/perl -w
 
+# This is the server CGI that analyze the POSTED XML file and fills the database.
+# Todo: Improve error messages and checks.
+
 use strict;
 use CGI;
 use XML::Validator::Schema;
 use XML::SAX::ParserFactory;
 use XML::Simple;
 use Data::Dumper;
-use POSIX;
 use DBI;
 
 my $xs = XML::Simple->new(ForceArray => 1, KeepRoot => 1);
-
 my $xml;
 
 # First I get POST information in $xml variable.
@@ -63,8 +64,8 @@ my $date_test= $ref->{date} . " " . $ref->{time};
 my $version= $ref->{version};
 # The remote IP I get it from the IP that is connecting to the server.
 my $ip_origin= $ENV{'REMOTE_ADDR'};
-my $country_origin="UY";
-my ($ip_destination,$testtype,$number_probe,$min_rtt,$max_rtt,$ave_rtt,$dev_rtt,$packet_loss,$country_destination);
+my $country_origin=$ref->{local_country};;
+my ($ip_destination,$testtype,$number_probe,$min_rtt,$max_rtt,$ave_rtt,$dev_rtt,$median_rtt,$packet_loss,$country_destination);
 
 foreach my $test (@{$ref->{test}}) {
   $ip_destination= $test->{destination_ip};
@@ -74,13 +75,14 @@ foreach my $test (@{$ref->{test}}) {
   $max_rtt=$test->{max_rtt};
   $ave_rtt=$test->{ave_rtt};
   $dev_rtt=$test->{dev_rtt};
+  $median_rtt=$test->{median_rtt};
   $packet_loss=$test->{packet_loss};
   $country_destination=getCountryDestination($ip_destination);
 # Now I add the record to the database only if the destination exists on the testpoint table.
- # if ($country_destination) 
- # {
-  my $rows = $dbh->do( qq[ INSERT INTO results (date_test,version,ip_origin,ip_destination,testtype,number_probes,min_rtt,max_rtt,ave_rtt,dev_rtt,packet_loss,country_origin,country_destination) VALUES ('$date_test','$version','$ip_origin','$ip_destination','$testtype','$number_probe','$min_rtt','$max_rtt','$ave_rtt','$dev_rtt','$packet_loss','$country_origin','$country_destination') ] );
- # }
+  if ($country_destination) 
+   {
+  my $rows = $dbh->do( qq[ INSERT INTO results (date_test,version,ip_origin,ip_destination,testtype,number_probes,min_rtt,max_rtt,ave_rtt,dev_rtt,median_rtt,packet_loss,country_origin,country_destination) VALUES ('$date_test','$version','$ip_origin','$ip_destination','$testtype','$number_probe','$min_rtt','$max_rtt','$ave_rtt','$dev_rtt','$median_rtt','$packet_loss','$country_origin','$country_destination') ] );
+   }
 }
 print $successful_message;
 $dbh->disconnect();
@@ -91,9 +93,3 @@ sub getCountryDestination{
  my $country = $dbh -> selectrow_array( qq[ SELECT country FROM test_points WHERE ip_address='$ip' ] );
  return $country
 }
-
-
-
-#sub getCountryOrigin{
-# La idea es que el pais de origen este en el XML
-#}
