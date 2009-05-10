@@ -15,9 +15,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.table.TableColumn;
+
+import org.apache.commons.httpclient.HttpException;
 
 public class Applet extends JApplet implements ActionListener{
 	
@@ -29,11 +35,39 @@ public class Applet extends JApplet implements ActionListener{
 	
 	JTextArea logArea;
     JButton startButton;
-    JTable table[] = new JTable[25];
-    JScrollPane scrollPane[] = new JScrollPane[25];
+    JTable tables[];
+    JScrollPane scrollPanels[];
     JTable table_all;
 
     // Countries
+    Country[] countries = new Country[]{
+    		// Continents (pseudo-countries)
+   // 		new Country("na","North America"),
+   // 		new Country("eu","Europe"),
+   // 		new Country("as","Asia"),
+    		// Countries
+    		new Country("AR","Argentina"),
+    		new Country("BO","Bolivia"),
+    		new Country("BR","Brasil"),
+    		new Country("CL","Chile"),
+    		new Country("CO","Colombia"),
+    		new Country("CR","Costa Rica"),
+    		new Country("DO","Argentina"),
+    		new Country("AR","Republica Dominicana"),
+    		new Country("EC","Ecuador"),
+    		new Country("SV","El Salvador"),
+    		new Country("GT","Guatemala"),
+    		new Country("HN","Honduras"),
+    		new Country("MX","Mexico"),
+    		new Country("NI","Nicaragua"),
+    		new Country("PA","Panama"),
+    		new Country("PY","Paraguay"),
+    		new Country("PE","Peru"),
+    		new Country("UY","Uruguay"),
+    		new Country("VE","Venezuela"),
+    };
+    
+    /*
     int ncountries = 21;
     String[] countries = {"North America", "Europe", "Asia", 
     		"Argentina", "Bolivia", "Brasil", "Chile",
@@ -132,9 +166,9 @@ public class Applet extends JApplet implements ActionListener{
      {"200.44.153.90", "200.62.25.242", "150.188.30.6", "190.9.128.107",
       "150.187.178.3", "200.11.196.243", "200.44.153.154", "200.90.21.194",
       "200.11.190.2", "200.47.215.3", "200.82.166.170", "159.90.100.201"}};
-
-    LatencyTester latencyTester;
-    LatencyTester latTester[] = new LatencyTester[25];
+	*/
+   // LatencyTester latencyTester;
+    LatencyTester countryLatencyTesters[];
     
     Graph graph;
     
@@ -179,7 +213,9 @@ public class Applet extends JApplet implements ActionListener{
     	//label.setBounds(310,0,200,20);
     	//add(label);
     	// Graph
-    	graph = new Graph(country_codes,ncountries);
+    	graph = new Graph(countries);
+    	
+    	// TODO: I think is better to put it as parameters/constants (jm)
     	graph.setBounds(380,93,310,370);
         add(graph);
         
@@ -193,6 +229,9 @@ public class Applet extends JApplet implements ActionListener{
         //tab.add("TesteGraph",graph);
         
         // A tab and a table for the summary 
+        tables = new JTable[countries.length];
+        scrollPanels = new JScrollPane[countries.length];
+        
         table_all = new JTable();
         table_all.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
     	JScrollPane scrollPane_all = new JScrollPane(table_all);
@@ -200,12 +239,12 @@ public class Applet extends JApplet implements ActionListener{
         table_all.setFont(new Font(null, Font.PLAIN, 10));
     	tab.add("SUMMARY", scrollPane_all);
     	// Sets a Tab and a JTable per country        
-        for(int i = 0; i < ncountries; i++) {
-    	    table[i] = new JTable();
-    	   	table[i].setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        	scrollPane[i] = new JScrollPane(table[i]);
-        	table[i].setFont(new Font(null, Font.PLAIN, 10));
-        	tab.add(countries[i], scrollPane[i]);
+        for(int i = 0; i < countries.length; i++) {
+    	    tables[i] = new JTable();
+    	   	tables[i].setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        	scrollPanels[i] = new JScrollPane(tables[i]);
+        	tables[i].setFont(new Font(null, Font.PLAIN, 10));
+        	tab.add(countries[i].countryName, scrollPanels[i]);
     	}
     	resize(WIDTH, HEIGHT);
     	//Add the text field to the applet.
@@ -248,35 +287,38 @@ public class Applet extends JApplet implements ActionListener{
 		if (startButton.equals(e.getSource())) {
 			startButton.setEnabled(false);
 			startButton.setText("Cancel");
-			for(int i=0; i<ncountries; i++){
-			    for(LatencyLocation sample:latTester[i].getSamples()) {
-				    AppletTester appletTester = new AppletTester(this, this.latTester[i], sample, numSamples);
-				    appletTester.start();
-			    }
+			// Starts all the tester threads
+			for(LatencyTester countryLatencyTester:countryLatencyTesters){
+				countryLatencyTester.start();
 			}
 			startButton.setText("Again");
 			startButton.setEnabled(true);
 		}
 	}
 	
-//	private void add2logArea(String newWord) {
-//        logArea.append(newWord + "\n");
-//        logArea.repaint();
-//    }	
 	
 	public void initTest() {
-		for(int i = 0; i < ncountries; i++) {
-    	   if (latTester[i] == null) {
-    		   latTester[i] = new LatencyTester(countries[i], i, graph, numSamples);
-    		   table[i].setModel(latTester[i].getTableModel()); 
-         	   TableColumn col = (table[i].getColumnModel().getColumn(0));
+		CentralServer.retrieveTestoPoints("http://simon.lacnic.net/testpoints.txt");
+		CentralServer.setPostUrl("http://simon.lacnic.net/cgi-bin/simonpost.cgi");
+		CentralServer.setLocalCountry(new Country("XX","Undefined"));
+		
+		countryLatencyTesters = new LatencyTester[countries.length];
+		for(int i = 0; i < countries.length; i++) {
+    	   if (countryLatencyTesters[i] == null) {
+    		   countryLatencyTesters[i] = new LatencyTester(this, countries[i], i, graph, numSamples);
+    		   tables[i].setModel(countryLatencyTesters[i].getTableModel()); 
+    		   // Change column width
+         	   TableColumn col = (tables[i].getColumnModel().getColumn(0));
         	   col.setPreferredWidth(190);
     	   }
-    	   for(String site:ntp[i]) {
-			   latTester[i].add(new LatencyLocation(site));
+    	   List<TestPoint> testPointsForCountry = CentralServer.getTestPointsByCountry(countries[i]);
+    	   //System.out.println(countries[i]);
+    	   for(TestPoint testPoint:testPointsForCountry) {
+    		  //System.out.println("\t" + testPoint);	      
+    		  countryLatencyTesters[i].add(testPoint);
 		   }
     	}
-   		AllTableModel tablemodel = new AllTableModel(latTester,ncountries);
+   		AllTableModel tablemodel = new AllTableModel(countryLatencyTesters,countries.length);
 		table_all.setModel(tablemodel);
   	    TableColumn col = (table_all.getColumnModel().getColumn(0));
 	    col.setPreferredWidth(180);
