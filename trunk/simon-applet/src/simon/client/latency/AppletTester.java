@@ -4,11 +4,11 @@ package simon.client.latency;
 import javax.swing.SwingUtilities;
 
 public class AppletTester extends Thread {
-	LatencyLocation sample;
+	TestPoint sample;
 	LatencyTester latencyTester;
 	Applet applet;
 	int num;
-	AppletTester(Applet applet, LatencyTester latencyTester, LatencyLocation sample, int num) {
+	AppletTester(Applet applet, LatencyTester latencyTester, TestPoint sample, int num) {
 		this.applet = applet;
 		this.sample = sample;
 		this.latencyTester = latencyTester;
@@ -19,7 +19,7 @@ public class AppletTester extends Thread {
 		//System.out.println("Starting test " + sample);
         try {
         	for(int i=0; i<num; i++) {
-        		  sample = latencyTester.getUDPLatency(sample);
+        		  sample = latencyTester.getLatency(sample);
        		      System.out.println(sample);
                   SwingUtilities.invokeAndWait(new Runnable() {
       			    public void run() {

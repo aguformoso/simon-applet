@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
@@ -14,36 +17,83 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
 
 
-public class LatencyTester {
+public class LatencyTester extends Thread {
 	//static Logger log = Logger.getLogger(LatencyTester.class);
 	
-	ArrayList<LatencyLocation> location = new ArrayList<LatencyLocation>();
+	ArrayList<TestPoint> testPoints = new ArrayList<TestPoint>();
 	LatencyTableModel latencyTableModel;
-	String country; 
+	Country country; 
 	Graph graph;
 	int countrynumber;
 	int noLocation;
 	int nsamples;
-	
-	public LatencyTester(String country, int countrynumber, Graph graph, int nsamples) {
+	Applet applet;
+	public LatencyTester(Applet applet, Country country, int countrynumber, Graph graph, int nsamples) {
 		this.country = country;
 		this.latencyTableModel = new LatencyTableModel(this);
 		this.graph = graph;
 		this.countrynumber = countrynumber;
 		this.nsamples = nsamples;
+		this.applet = applet;
 		noLocation = 0;
 	}
 
-	void add(LatencyLocation site) {
-		location.add(site);
+	void add(TestPoint site) {
+		testPoints.add(site);
 		noLocation++;
 	}
 	
-	ArrayList<LatencyLocation> getSamples() {
-		return location;
+	ArrayList<TestPoint> getSamples() {
+		return testPoints;
 	}
 
-	LatencyLocation getUDPLatency(LatencyLocation stats) throws IOException, InterruptedException {
+	public void run() {
+		AppletTester[] testPointThreads = new AppletTester[this.testPoints.size()];
+		int i=0;
+		for(TestPoint testPoint:this.testPoints) {
+			    testPointThreads[i] = new AppletTester(this.applet, this, testPoint, nsamples);
+			    testPointThreads[i].start();
+			    i++;
+		}
+		// Wait all finish
+		for(AppletTester testPointThread:testPointThreads) {
+			try {
+				testPointThread.join();
+			} catch (InterruptedException e) {}
+		}
+		// Post
+		try {
+			CentralServer.postResults(this);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	TestPoint getLatency(TestPoint testPoint) throws IOException, InterruptedException {
+		if (testPoint.testPointType== TestPointType.NTP)
+			return getUDPLatency(testPoint);
+		if (testPoint.testPointType== TestPointType.TCP)
+			return getTcpLatency(testPoint);
+		
+		// Unknown protocol
+		return null;
+	}
+	private TestPoint getTcpLatency(TestPoint testPoint) throws IOException {
+		InetAddress ip = testPoint.ip;
+		SocketAddress address = new InetSocketAddress(ip, 80);
+		//log.debug("address=" + address);
+		long ti=System.currentTimeMillis();
+		Socket socket = new Socket();
+		socket.connect(address);
+		long dt=System.currentTimeMillis() - ti;
+		socket.close();
+
+		testPoint.addSample(dt);
+		return testPoint;	
+	}
+	
+	private TestPoint getUDPLatency(TestPoint testPoint) throws IOException, InterruptedException {
 		// wait a bit (the same amount between tests)...
 		// I think it could help not to create local buffers for the sent packets,
 		// that could cause some delay and imprecision
@@ -53,7 +103,7 @@ public class LatencyTester {
 		// Send request
 		long rtt;
 		DatagramSocket socket = new DatagramSocket();
-		InetAddress address = InetAddress.getByName(stats.destination);
+		InetAddress address = testPoint.ip;
 		byte[] buf = new NtpMessage().toByteArray();
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);	
 		NtpMessage.encodeTimestamp(packet.getData(), 40, (System.nanoTime()/1000000000.0) + 2208988800.0);		
@@ -74,16 +124,16 @@ public class LatencyTester {
 		catch (SocketTimeoutException e) {
 		   rtt = -1;
 		   System.out.println("socket timeout");
-		   stats.addLost();
+		   testPoint.addLost();
 		}  
 		finally {
 			socket.close();
 		}
 		if (rtt != -1) {
-			stats.addSample(rtt);
+			testPoint.addSample(rtt);
 			graph.addSample(countrynumber, rtt);
 		}
-		return stats;	      
+		return testPoint;	      
 	}
 
 	public long getNumLocations() {
@@ -95,7 +145,7 @@ public class LatencyTester {
         else {
             long min=9999;
         	for (int i=0; i<noLocation; i++) {
-			   if ((location.get(i).getMin()<min) & (location.get(i).getMin()!=-1)) min=location.get(i).getMin();
+			   if ((testPoints.get(i).getMinimum()<min) & (testPoints.get(i).getMinimum()!=-1)) min=testPoints.get(i).getMinimum();
         	}
         return min;	
         }	
@@ -106,7 +156,7 @@ public class LatencyTester {
         else {
             long max=0;
         	for (int i=0; i<noLocation; i++) {
-			   if (location.get(i).getMax()>max) max=location.get(i).getMax();
+			   if (testPoints.get(i).getMaximum()>max) max=testPoints.get(i).getMaximum();
         	}
         return max;	
         }	
@@ -118,8 +168,8 @@ public class LatencyTester {
         	long sum = 0;
         	long samples = 0;
             for (int i=0; i<noLocation; i++) {
-			   sum += ((location.get(i).getAverage())*(location.get(i).getNumSamples()));
-			   samples += location.get(i).getNumSamples();
+			   sum += ((testPoints.get(i).getAverage())*(testPoints.get(i).getNumSamples()));
+			   samples += testPoints.get(i).getNumSamples();
         	}
         if (samples==0) return -1;
         else return sum/samples;	
@@ -131,7 +181,7 @@ public class LatencyTester {
         else {
         	long samples = 0;
             for (int i=0; i<noLocation; i++) {
-			   samples += location.get(i).getNumSamples();
+			   samples += testPoints.get(i).getNumSamples();
         	}
         return samples;	
         }	
@@ -142,7 +192,7 @@ public class LatencyTester {
         else {
         	long losts = 0;
             for (int i=0; i<noLocation; i++) {
-			   losts += location.get(i).getLost();
+			   losts += testPoints.get(i).getLost();
         	}
         return losts;	
         }	
@@ -155,11 +205,11 @@ public class LatencyTester {
 	
 	
 	public String toString() {
-		return country + " -> Min: " + getMin() + "ms; Average: " + getAverage() + "ms; Max: " + getMax() + "ms.";
+		return country.countryCode + " -> Min: " + getMin() + "ms; Average: " + getAverage() + "ms; Max: " + getMax() + "ms.";
 	}
 
 	public Object getData() {
-		return this.country +  ", " + this.getMin()  + ", " + this.getAverage()+ ", " + this.getMax()  + ", " + getNumSamples() + "\n";
+		return this.country.countryCode +  ", " + this.getMin()  + ", " + this.getAverage()+ ", " + this.getMax()  + ", " + getNumSamples() + "\n";
 	}
 	
 	static String [] columnNames = { "Region", "min", "avg", "max", "samples", "losts", "total"};
@@ -176,7 +226,7 @@ public class LatencyTester {
 	}
 	
 	public Object getColumn(int columnIndex) {
-		if (columnIndex==0) return this.country;
+		if (columnIndex==0) return this.country.countryName;
 		if (columnIndex==1) return this.getMin();
 		if (columnIndex==2) return this.getAverage();
 		if (columnIndex==3) return this.getMax();
@@ -186,25 +236,7 @@ public class LatencyTester {
 		return "?";
 	}
 	
-	static void postResults(String url,String data) throws HttpException, IOException {
-		HttpClient client = new HttpClient();
-        PostMethod postMethod = new PostMethod(url);
-        client.setConnectionTimeout(8000);
-        postMethod.setRequestBody(data);
-        postMethod.setRequestHeader("Content-type","text/xml; charset=ISO-8859-1");
-        int statusCode1 = client.executeMethod(postMethod);
-        postMethod.releaseConnection();
-        System.out.println("Uploaded");
-	}
-	
-	static void postResults(String url, ArrayList<LatencyLocation> samples) throws HttpException, IOException {
-		StringBuffer data = new StringBuffer();
-		for(LatencyLocation sample:samples) {
-			data.append(sample.getData());
-		}
-		postResults(url, data.toString());
-	}
-	
+
 	TableModel getTableModel() {
 		return latencyTableModel;
 	}

@@ -26,13 +26,15 @@ public class Graph extends JLabel{
     double xscale=3.5;
     double yscale=16;
     String cc[];
-    int ncountries;
+    int ncountries=0;
     
-    public Graph(String[] cc, int ncountries) {
+    public Graph(Country[] countries) {
     	super();
        	points = new HashMap<Integer,List<Integer>>();
-       	this.cc=cc;
-       	this.ncountries=ncountries;
+       	this.cc = new String[countries.length];
+       	for(Country country:countries) {
+       		this.cc[this.ncountries++] = country.countryCode;
+       	}
     }
 
     public void paintComponent(Graphics g) {

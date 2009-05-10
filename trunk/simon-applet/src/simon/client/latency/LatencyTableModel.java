@@ -36,7 +36,7 @@ public class LatencyTableModel implements TableModel {
 	}
 	
 	public int getRowCount() {
-		return this.latencyTester.location.size();
+		return this.latencyTester.testPoints.size();
 	}
 
 	public Class<?> getColumnClass(int columnIndex) {
@@ -44,7 +44,7 @@ public class LatencyTableModel implements TableModel {
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		LatencyLocation sample = this.latencyTester.location.get(rowIndex);
+		TestPoint sample = this.latencyTester.testPoints.get(rowIndex);
 		return sample.getColumn(columnIndex);
 	}
 }
