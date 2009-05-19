@@ -23,6 +23,8 @@
 <xsd:simpleType name="SimonType">
         <xsd:restriction base="xsd:string">
 	        <xsd:enumeration value="tcp_connection"/>
+	        <xsd:enumeration value="tcp_web"/>
+	        <xsd:enumeration value="tcp_dns"/>
         	<xsd:enumeration value="icmp_echo"/>	   	
     		<xsd:enumeration value="ntp"/>
      </xsd:restriction>	
