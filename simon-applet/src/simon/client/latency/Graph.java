@@ -13,10 +13,11 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Iterator;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 
-public class Graph extends JLabel{
+public class Graph extends JComponent{
 	
 	private static final long serialVersionUID = 1L;
 
@@ -46,6 +47,7 @@ public class Graph extends JLabel{
             drawPoints(g2d);
 	      }
 	      catch (Exception e) {
+	    	  e.printStackTrace();
 	      }
 	}
     

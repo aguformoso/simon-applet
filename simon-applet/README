@@ -2,4 +2,4 @@ Signing the applet
 
 keytool -selfcert-alias simon
 keytool -selfcert -alias simon
-jarsigner applet.jar simon
+jarsigner simon-applet.jar simon

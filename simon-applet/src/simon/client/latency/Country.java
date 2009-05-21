@@ -12,4 +12,12 @@ public class Country {
 	public String toString() {
 		return this.countryName + "(" + this.countryCode + ")";
 	}
+
+	public String getCountryCode() {
+		return countryCode;
+	}
+
+	public String getCountryName() {
+		return countryName;
+	}
 }

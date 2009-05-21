@@ -3,7 +3,7 @@
 <!--this file was created by Eclipse Runnable JAR Export Wizard-->
 <!--ANT 1.7 is required                                        -->
 <target name="create_run_jar">
-<jar destfile="/home/jmguzman/workspace/production/simon-applet/jar/applet.jar" filesetmanifest="mergewithoutmain">
+<jar destfile="/home/jmguzman/workspace/production/simon-applet/jar/simon-applet.jar" filesetmanifest="mergewithoutmain">
 <manifest>
 <attribute name="Built-By" value="${user.name}"/>
 <attribute name="Main-Class" value="simon.client.latency.LatencyTester"/>
