@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.swing.table.TableModel;
 
@@ -175,6 +176,30 @@ public class LatencyTester extends Thread {
         else return sum/samples;	
         }	
 	}
+	public long getMedian() {
+		if (noLocation==0) return -1;	
+		ArrayList<Long> myArray=new ArrayList<Long>();
+		for (int i=0; i<noLocation; i++) {
+			if ((testPoints.get(i).getMedian())>0) myArray.add(testPoints.get(i).getMedian());
+		}
+        Collections.sort(myArray);
+        int arrayLength = 0;
+        long arrayMedian = 0;
+        int currentIndex = 0;
+        arrayLength = myArray.size();
+        if (arrayLength==0) return -1;
+        if(arrayLength % 2 != 0) {    
+        	currentIndex = ((arrayLength / 2) + 1);
+            arrayMedian = myArray.get(currentIndex - 1);
+        }
+        else {    
+        	int indexOne = (arrayLength / 2);
+            int indexTwo = arrayLength / 2 + 1;
+            long arraysSum = myArray.get(indexOne - 1) + myArray.get(indexTwo - 1);
+            arrayMedian = arraysSum / 2;
+        }
+        return arrayMedian;
+    }
 	
 	public long getNumSamples() {
         if (noLocation==0) return -1;
@@ -203,6 +228,33 @@ public class LatencyTester extends Thread {
 	    else return Long.toString((this.getNumSamples())+(this.getLost()))+"/"+Long.toString(noLocation*nsamples);
 	}
 	
+	public String getComplete() {
+	    if (noLocation==0) return ".................... 0%";
+	    long percent = (this.getNumSamples()+this.getLost())*100/(noLocation*nsamples);
+	    String sp = "....................";
+	    if (percent>=05) sp="|...................";
+	    if (percent>=10) sp="||..................";
+	    if (percent>=15) sp="|||.................";
+	    if (percent>=20) sp="||||................";
+	    if (percent>=25) sp="|||||...............";
+	    if (percent>=30) sp="||||||..............";
+	    if (percent>=35) sp="|||||||.............";
+	    if (percent>=40) sp="||||||||............";
+	    if (percent>=45) sp="|||||||||...........";
+	    if (percent>=50) sp="||||||||||..........";
+	    if (percent>=55) sp="|||||||||||.........";
+	    if (percent>=60) sp="||||||||||||........";
+	    if (percent>=65) sp="|||||||||||||.......";
+	    if (percent>=70) sp="||||||||||||||......";
+	    if (percent>=75) sp="|||||||||||||||.....";
+	    if (percent>=80) sp="||||||||||||||||....";
+	    if (percent>=85) sp="|||||||||||||||||...";
+	    if (percent>=90) sp="||||||||||||||||||..";
+	    if (percent>=95) sp="|||||||||||||||||||.";
+	    if (percent>=100) sp="||||||||||||||||||||";
+	    return sp+" "+Long.toString(percent)+"%";
+	}
+	
 	
 	public String toString() {
 		return country.countryCode + " -> Min: " + getMin() + "ms; Average: " + getAverage() + "ms; Max: " + getMax() + "ms.";
@@ -213,6 +265,7 @@ public class LatencyTester extends Thread {
 	}
 	
 	static String [] columnNames = { "Region", "min", "avg", "max", "samples", "losts", "total"};
+	static String [] columnNamesSimple = { "Region", "latency (typical)", "% test" };
 	
 	static public Class<?> getColumnClass(int columnIndex) {
 		if (columnIndex==0) return String.class;
@@ -233,6 +286,20 @@ public class LatencyTester extends Thread {
 		if (columnIndex==4) return this.getNumSamples();
 		if (columnIndex==5) return this.getLost();
 		if (columnIndex==6) return this.getTotal();
+		return "?";
+	}
+	
+	static public Class<?> getColumnClassSimple(int columnIndex) {
+		if (columnIndex==0) return String.class;
+		if (columnIndex==1) return String.class;
+		if (columnIndex==2) return String.class;
+		return String.class;
+	}
+	
+	public Object getColumnSimple(int columnIndex) {
+		if (columnIndex==0) return this.country.countryName;
+		if (columnIndex==1) return "   "+Long.toString(this.getMedian())+" ms ";
+		if (columnIndex==2) return "   "+this.getComplete();
 		return "?";
 	}
 	

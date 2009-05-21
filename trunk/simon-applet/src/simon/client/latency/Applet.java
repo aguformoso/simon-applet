@@ -38,13 +38,14 @@ public class Applet extends JApplet implements ActionListener{
     JTable tables[];
     JScrollPane scrollPanels[];
     JTable table_all;
+    JTable table_simple;
 
     // Countries
     Country[] countries = new Country[]{
     		// Continents (pseudo-countries)
-   // 		new Country("na","North America"),
-   // 		new Country("eu","Europe"),
-   // 		new Country("as","Asia"),
+    		new Country("US","North America"),
+    		new Country("EU","Europe"),
+    		new Country("AS","Asia"),
     		// Countries
     		new Country("AR","Argentina"),
     		new Country("BO","Bolivia"),
@@ -52,8 +53,7 @@ public class Applet extends JApplet implements ActionListener{
     		new Country("CL","Chile"),
     		new Country("CO","Colombia"),
     		new Country("CR","Costa Rica"),
-    		new Country("DO","Argentina"),
-    		new Country("AR","Republica Dominicana"),
+    		new Country("DO","Republica Dominicana"),
     		new Country("EC","Ecuador"),
     		new Country("SV","El Salvador"),
     		new Country("GT","Guatemala"),
@@ -232,11 +232,11 @@ public class Applet extends JApplet implements ActionListener{
         tables = new JTable[countries.length];
         scrollPanels = new JScrollPane[countries.length];
         
-        table_all = new JTable();
-        table_all.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-    	JScrollPane scrollPane_all = new JScrollPane(table_all);
-    	table_all.setBackground(Color.white);
-        table_all.setFont(new Font(null, Font.PLAIN, 10));
+        table_simple = new JTable();
+        table_simple.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+    	JScrollPane scrollPane_all = new JScrollPane(table_simple);
+    	table_simple.setBackground(Color.white);
+        table_simple.setFont(new Font(null, Font.PLAIN, 10));
     	tab.add("SUMMARY", scrollPane_all);
     	// Sets a Tab and a JTable per country        
         for(int i = 0; i < countries.length; i++) {
@@ -319,9 +319,15 @@ public class Applet extends JApplet implements ActionListener{
 		   }
     	}
    		AllTableModel tablemodel = new AllTableModel(countryLatencyTesters,countries.length);
-		table_all.setModel(tablemodel);
-  	    TableColumn col = (table_all.getColumnModel().getColumn(0));
-	    col.setPreferredWidth(180);
+		//table_all.setModel(tablemodel);
+  	    //TableColumn col = (table_all.getColumnModel().getColumn(0));
+	    //col.setPreferredWidth(180);
+	    
+   		SimpleTableModel simpletablemodel = new SimpleTableModel(countryLatencyTesters,countries.length);
+		table_simple.setModel(simpletablemodel);
+  	    //TableColumn simplecol = (table_simple.getColumnModel().getColumn(0));
+	    //simplecol.setPreferredWidth(180);
+
 	}
 	
 	public void endTest() {
