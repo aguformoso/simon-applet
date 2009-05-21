@@ -1,0 +1,14 @@
+#Fat Jar Configuration File
+#Thu May 21 13:18:56 PDT 2009
+onejar.license.required=false
+manifest.classpath=
+manifest.removesigners=true
+onejar.checkbox=false
+jarname=jar/simon-applet.jar
+manifest.mergeall=true
+manifest.mainclass=
+manifest.file=<createnew>
+jarname.isextern=false
+onejar.expand=
+excludes=<po|simon-applet>~simon.server/;<po|simon-applet>~simon.client.latency.Applet1242936470777.html
+includes=

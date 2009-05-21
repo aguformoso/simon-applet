@@ -102,6 +102,11 @@ public class CentralServer {
 		if (line!=null && line.indexOf("Success") != -1) {
 			return;
 		} else {
+			
+			System.err.println("ERROR:" + data + "Result:\n" + line);
+			while( (line=in.readLine())!= null) {
+				System.err.println( line);
+			}
 			throw new Exception(line);
 		}
 	}
