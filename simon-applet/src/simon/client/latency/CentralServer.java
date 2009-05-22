@@ -18,7 +18,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.log4j.Logger;
 
 public class CentralServer {
-	static Logger log = Logger.getLogger(LatencyTester.class);
+	static Logger log = Logger.getLogger(CentralServer.class);
 	static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 	static SimpleDateFormat timeFormatter = new SimpleDateFormat("hh:mm:ss");
 	// Global Test Points
@@ -33,6 +33,7 @@ public class CentralServer {
 	static Country localCountry;
 	
 	static void retrieveTestoPoints(String parametersUrl) {
+		log.info("Retrieving test points");
 		HttpClient client = new HttpClient();
         GetMethod getMethod = new GetMethod(parametersUrl);
         
@@ -61,12 +62,23 @@ public class CentralServer {
 				}
 			}
 			getMethod.releaseConnection();
-			
+			ArrayList<TestPoint> tps = testPointsByContryCode.get("CL");
+			try {
+				tps.add(new TestPoint("999,Chile,tcp_web,200.1.123.3,CL,2009-05-08 00:00:00"));
+				tps.add(new TestPoint("999,Chile,tcp_web,146.82.90.31,CL,2009-05-08 00:00:00"));
+				tps.add(new TestPoint("999,Chile,tcp_dns,200.1.123.4,CL,2009-05-08 00:00:00"));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} catch (HttpException e) {
-			System.err.println("Error Connecting Server:" + e);
+			log.error("Error Connecting Server:" + e);
 		} catch (IOException e) {
-			System.err.println("Error Connecting Server::" + e);
+			log.error("Error Connecting Server:" + e);
 		}   
+		
+		// Experimental
+		
 	}
 	
 	static public Enumeration<String> getContryCodes() {
@@ -84,30 +96,38 @@ public class CentralServer {
 	}
 	
 	
-	private static void postResults(String url,String data) throws Exception {
+	private static synchronized void postResults(String url,String data) throws Exception {
+		log.info("Opening conection");
 		HttpClient client = new HttpClient();
         PostMethod postMethod = new PostMethod(url);
-        System.out.println("Uploading:\n" + data);
+        //System.out.println("Uploading:\n" + data);
         //client.setConnectionTimeout(8000);
         postMethod.setRequestBody(data);
         postMethod.setRequestHeader("Content-type","text/xml; charset=ISO-8859-1");
+        log.info("Sending");
         int statusCode = client.executeMethod(postMethod);
+        log.info("Returned");
         // Results
         InputStream is= postMethod.getResponseBodyAsStream();
 		BufferedReader in = new BufferedReader(new InputStreamReader(is));
 		String line=in.readLine();
-		postMethod.releaseConnection();
+		log.info("read");
 		// TODO: fix once roque send us just a error code
-		System.out.println("Result:" + line);
+		//System.out.println("Result:" + line);
 		if (line!=null && line.indexOf("Success") != -1) {
+			log.info("Post accepted");
+			postMethod.releaseConnection();
 			return;
 		} else {
-			
-			System.err.println("ERROR:" + data + "Result:\n" + line);
+			String errorLine = line;
+			String result = line + "\n";
 			while( (line=in.readLine())!= null) {
-				System.err.println( line);
+				result += line + "\n";
 			}
-			throw new Exception(line);
+			log.error("Server returned error: "  + errorLine);
+			log.debug("Sent: "  + data + "\nResult:\n" + result);
+			postMethod.releaseConnection();
+			throw new Exception(errorLine);
 		}
 	}
 	
@@ -128,14 +148,14 @@ public class CentralServer {
 		
 		for(TestPoint testPoint:latencyTester.testPoints) {
 			if (testPoint.ip != null) {
-				String testtype=null;
-				if (testPoint.testPointType==TestPointType.NTP) testtype="ntp";
-				if (testPoint.testPointType==TestPointType.TCP) testtype="tcp_connection";
-				if (testPoint.testPointType==TestPointType.ICMP) testtype="icmp_echo";
-				if (testtype!=null && testPoint.getNumSamples()>0) {
+				//String testtype=null;
+				//if (testPoint.testPointType==TestPointType.NTP) testtype="ntp";
+				//if (testPoint.testPointType==TestPointType.TCP) testtype="tcp_connection";
+				//if (testPoint.testPointType==TestPointType.ICMP) testtype="icmp_echo";
+				if (testPoint.isOk()) {
 					data.append("<test>\n");
 					data.append("    <destination_ip>" + testPoint.ip.getHostAddress() + "</destination_ip>\n");
-					data.append("    <testtype>" + testtype + "</testtype>\n");
+					data.append("    <testtype>" + testPoint.testPointType + "</testtype>\n");
 					data.append("    <number_probes>" + testPoint.getNumSamples() + "</number_probes>\n");
 					data.append("    <min_rtt>" + testPoint.getMinimum() + "</min_rtt>\n");
 					data.append("    <max_rtt>" + testPoint.getMaximum() + "</max_rtt>\n");

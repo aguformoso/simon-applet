@@ -5,11 +5,11 @@ import javax.swing.table.TableModel;
 
 public class SimpleTableModel implements TableModel {
 
-	LatencyTester[] countries;
+	LatencyTester[] countryLatencyTester;
 	int nocountries;
 	
 	public SimpleTableModel(LatencyTester[] countries, int nocountries) {
-		this.countries=countries;
+		this.countryLatencyTester=countries;
 		this.nocountries=nocountries;
 	}
 		
@@ -34,7 +34,7 @@ public class SimpleTableModel implements TableModel {
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		return countries[rowIndex].getColumnSimple(columnIndex);
+		return countryLatencyTester[rowIndex].getColumnSimple(columnIndex);
 	}
 
 	public void addTableModelListener(TableModelListener l) {

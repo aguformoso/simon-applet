@@ -16,11 +16,14 @@ import java.util.Iterator;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
+import org.apache.log4j.Logger;
 
+@Deprecated
 public class Graph extends JComponent{
 	
 	private static final long serialVersionUID = 1L;
-
+	static Logger log = Logger.getLogger(Graph.class);
+	
     int stop;
     int noPoints = 0;
     private Map<Integer,List<Integer>> points;
@@ -79,35 +82,41 @@ public class Graph extends JComponent{
     }
     
     private void drawPoints(Graphics2D g){
-    	Color cyan = new Color(0,100,100);
-    	Color green = new Color(0,150,0);
-    	Color yellow = new Color(200,200,0);
-    	Color orange = new Color(180,120,0);
-    	Color red = new Color(200,0,0);
-    	Color magenta = new Color(100,0,100);
-    	Set <Entry<Integer,List<Integer>>> set = this.points.entrySet ();
-    	Iterator <Entry<Integer,List<Integer>>> it = set.iterator ();
-    	while (it.hasNext ()){
-    		Entry<Integer,List<Integer>> entry = it.next ();
-    		Iterator <Integer> itDelay = entry.getValue ().iterator ();    		
-    		while (itDelay.hasNext ()){
-    			int delay = itDelay.next ();
-    			int country = entry.getKey ();    	    		
-    		    // colors
-    			double rand = 1+ Math.sin(delay*100);
-    			if (delay>=600) g.setColor(magenta);
-    			if ((delay<600) & (rand>1)) g.setColor(red);
-    			if (delay<500) g.setColor(red);
-    			if ((delay<400) & (rand>1)) g.setColor(orange);
-    			if (delay<300) g.setColor(orange);
-    			if ((delay<250) & (rand>1)) g.setColor(yellow);
-    			if (delay<200) g.setColor(yellow);
-    			if ((delay<150) & (rand>1))g.setColor(green);
-				if (delay<100) g.setColor(green);
-				if (delay<50) g.setColor(cyan);
-				g.fillOval(20+(int)(delay/xscale),36+(int)(yscale*country)+Math.abs((int)(Math.sin(delay*100)*6)), 4, 2);
-    	     }
-    	}	
+    	try {
+    		Color cyan = new Color(0,100,100);
+        	Color green = new Color(0,150,0);
+        	Color yellow = new Color(200,200,0);
+        	Color orange = new Color(180,120,0);
+        	Color red = new Color(200,0,0);
+        	Color magenta = new Color(100,0,100);
+        	Set <Entry<Integer,List<Integer>>> set = this.points.entrySet ();
+        	Iterator <Entry<Integer,List<Integer>>> it = set.iterator ();
+        	while (it.hasNext ()){
+        		Entry<Integer,List<Integer>> entry = it.next ();
+        		Iterator <Integer> itDelay = entry.getValue ().iterator ();    		
+        		while (itDelay.hasNext ()){
+        			int delay = itDelay.next ();
+        			int country = entry.getKey ();    	    		
+        		    // colors
+        			double rand = 1+ Math.sin(delay*100);
+        			if (delay>=600) g.setColor(magenta);
+        			if ((delay<600) & (rand>1)) g.setColor(red);
+        			if (delay<500) g.setColor(red);
+        			if ((delay<400) & (rand>1)) g.setColor(orange);
+        			if (delay<300) g.setColor(orange);
+        			if ((delay<250) & (rand>1)) g.setColor(yellow);
+        			if (delay<200) g.setColor(yellow);
+        			if ((delay<150) & (rand>1))g.setColor(green);
+    				if (delay<100) g.setColor(green);
+    				if (delay<50) g.setColor(cyan);
+    				g.fillOval(20+(int)(delay/xscale),36+(int)(yscale*country)+Math.abs((int)(Math.sin(delay*100)*6)), 4, 2);
+        	     }
+        	}
+    	} catch (Exception e) {
+    		log.error(e.getCause());
+    		log.debug(e);
+    	}
+    	
     }
     
 	void addSample(int country, long delay) throws InterruptedException {

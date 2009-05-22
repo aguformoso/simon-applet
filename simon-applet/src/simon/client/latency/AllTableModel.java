@@ -18,11 +18,11 @@ public class AllTableModel implements TableModel {
 	}
 	
 	public int getColumnCount() {
-		return LatencyTester.columnNames.length;
+		return LatencyTester.columnNamesDetailed.length;
 	}
 
 	public String getColumnName(int columnIndex) {
-		return LatencyTester.columnNames[columnIndex];
+		return LatencyTester.columnNamesDetailed[columnIndex];
 	}
 	
 	public int getRowCount() {
