@@ -1,5 +1,9 @@
 package simon.client.latency;
 
 public enum TestPointType {
-	NTP, TCP, ICMP, UNK;
+	//tcp_connection,
+	tcp_web,
+	tcp_dns,
+	//icmp_echo,
+	ntp;
 }

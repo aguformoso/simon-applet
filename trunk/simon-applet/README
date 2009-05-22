@@ -1,5 +1,5 @@
 Signing the applet
 
-keytool -selfcert-alias simon
+keytool -genkey -alias simon
 keytool -selfcert -alias simon
 jarsigner simon-applet.jar simon

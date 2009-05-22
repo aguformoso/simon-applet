@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.JApplet;
 import javax.swing.JButton;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -24,19 +25,21 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.table.TableColumn;
 
 import org.apache.commons.httpclient.HttpException;
+import org.apache.log4j.Logger;
 
 public class Applet extends JApplet implements ActionListener{
 	
 	private static final long serialVersionUID = 1L;
-	//static Logger log = Logger.getLogger(Applet.class);
+	static Logger log = Logger.getLogger(Applet.class);
 	
-	int WIDTH = 720;
+	int WIDTH = 640;
 	int HEIGHT = 480;
-	
+	int NUM_SAMPLES = 5;
 	JTextArea logArea;
     JButton startButton;
     JComboBox countrySelectionBox;
-    JPanel testPanel;
+    JTabbedPane testPanel;
+    //Graph graph;
     
     JTable tables[];
     JScrollPane scrollPanels[];
@@ -46,9 +49,9 @@ public class Applet extends JApplet implements ActionListener{
     // Countries
     Country[] countries = new Country[]{
     		// Continents (pseudo-countries)
-    		new Country("US","North America"),
-    		new Country("EU","Europe"),
-    		new Country("AS","Asia"),
+    		new Country("US","United States"),
+    		//new Country("EU","Europe"),
+    		//new Country("AS","Asia"),
     		// Countries
     		new Country("AR","Argentina"),
     		new Country("BO","Bolivia"),
@@ -72,15 +75,6 @@ public class Applet extends JApplet implements ActionListener{
     
     LatencyTester countryLatencyTesters[];
     Country localCountry=null;
-    Graph graph;
-    
-    // with something about 200 servers, 5 samples
-    // appear to be a very reasonable amount...
-    // we are getting a sample each 16s per server,
-    // what gives us a total time of 1.5 min.
-    // it is ok, isn't it?
-    
-    int numSamples = 5;
     
     
     public void init() {
@@ -88,40 +82,26 @@ public class Applet extends JApplet implements ActionListener{
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     createGUI();
-
                 }
             });
         } catch (Exception e) {
             System.err.println("createGUI didn't successfully complete");
             e.printStackTrace();
         }
-
     }
 
     private void createGUI() {  
     	
-      	// re-install the Metal Look and Feel
-    	//try {
-		//	UIManager.setLookAndFeel(new MetalLookAndFeel());
-		//} catch (UnsupportedLookAndFeelException e) {
-		//}
-    	// Sets a BoxLayout
     	Container contentPane = getContentPane();
     	contentPane.setLayout (new BoxLayout (contentPane, BoxLayout.Y_AXIS));
-    	//contentPane.setLayout (null);
     	contentPane.setBackground(Color.white);
     	
     	// Country Selection
-    	JPanel userFrame = new JPanel();
-    	userFrame.setBackground(Color.white);
+    	JPanel userPanel = new JPanel();
+    	userPanel.setBackground(Color.white);
     	{
-    		//userFrame.setBackground(Color.blue);
-        	//userFrame.setOpaque(true);
-        	// Label
-        	Label label = new Label("Select Country where you are:");
-        	//label.setFont(new Font(null, Font.BOLD, 18));
-        	//label.setBounds(310,0,200,20);
-        	userFrame.add(label);
+    		Label label = new Label("Select the country where you are now:");
+        	userPanel.add(label);
         	
         	Country[] countryNames = new Country[1+countries.length];
         	countryNames[0]=null;
@@ -131,70 +111,85 @@ public class Applet extends JApplet implements ActionListener{
         	countrySelectionBox = new JComboBox(countryNames);
             countrySelectionBox.setEnabled(true);
             countrySelectionBox.addActionListener(this);
-            userFrame.add(countrySelectionBox);
+            userPanel.add(countrySelectionBox);
             
-          //Add the text field to the applet.
         	startButton = new JButton("Start the tests");
-        	startButton.setFont(new Font(null, Font.BOLD, 18));
-        	startButton.setBounds(440,20,180,50);
             startButton.addActionListener(this);
-            userFrame.add(startButton);
+            userPanel.add(startButton);
     	}
-        contentPane.add(userFrame);
+        contentPane.add(userPanel);
 
         // Test
-    	testPanel = new JPanel();
-    	//testPanel.setLayout (new BoxLayout (testPanel, BoxLayout.X_AXIS));
-    	testPanel.setLayout (new GridLayout(1,0));
-    	testPanel.setBackground(Color.white);
-    	testPanel.setVisible(false);
+    	testPanel = new JTabbedPane();
+    	testPanel.setEnabled(false);
     	{
-    		
-            
-        	// Sets the Tabs
-        	JTabbedPane tab = new JTabbedPane();
-        	//tab.setBounds(0,15,370,465);
-            //tab.setBackground(Color.lightGray);
-            tab.setFont(new Font(null, Font.BOLD, 11));
-            
-            testPanel.add(tab);
-            
-            // A tab and a table for the summary 
-            tables = new JTable[countries.length];
-            scrollPanels = new JScrollPane[countries.length];
-            
-            table_simple = new JTable();
-            table_simple.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        	table_simple.setBackground(Color.white);
-            table_simple.setFont(new Font(null, Font.PLAIN, 10));
-            JScrollPane scrollPane_all = new JScrollPane(table_simple);
-        	tab.add("SUMMARY", scrollPane_all);
+    		// EASY
+        	JPanel easyPane = new JPanel();
+        	easyPane.setBackground(Color.white);
+        	easyPane.setLayout (new GridLayout(1,0)); // para grafico
+        	easyPane.setPreferredSize(new Dimension(WIDTH-50, HEIGHT-100));
+        	{
+        		//JPanel graphPanel = new JPanel();
+    			//graph = new Graph(countries);
+    			//graph.repaint();
+    			//graphPanel.add(graph);
+    			//easyPane.add(graphPanel);
+    			
+    			table_simple = new JTable();
+    			table_simple.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+    			table_simple.setBackground(Color.white);
+    			table_simple.setFont(new Font(null, Font.PLAIN, 10));
+    			easyPane.add(new JScrollPane(table_simple));
+    		}
         	
-        	// Sets a Tab and a JTable per country        
-            for(int i = 0; i < countries.length; i++) {
-        	    tables[i] = new JTable();
-        	   	tables[i].setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-            	tables[i].setFont(new Font(null, Font.PLAIN, 10));
-            	tab.add(countries[i].countryName, scrollPanels[i]);
-            	scrollPanels[i] = new JScrollPane(tables[i]);
-        	}
-            
-         // Graph
-        	graph = new Graph(countries);
-        	// TODO: I think is better to put it as parameters/constants (jm)
-        	//graph.setBounds(380,93,310,370);
-        	graph.setSize(100,200);
-        	graph.setBackground(Color.pink);
-        	testPanel.add(graph);	
+        	
+        	testPanel.addTab("Easy", new JScrollPane(easyPane));
+        	
+        	// ADVANCED
+    		JTabbedPane advancedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+    		//advancedPane.setFont(new Font(null, Font.BOLD, 11));
+    		advancedPane.setBackground(Color.yellow);
+    		advancedPane.setPreferredSize(new Dimension(WIDTH-50, HEIGHT-100));
+    		{
+    			// A tab and a table for the summary
+    			tables = new JTable[countries.length];
+    			scrollPanels = new JScrollPane[countries.length];
+
+    			/*table_simple = new JTable();
+    			table_simple.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+    			table_simple.setBackground(Color.white);
+    			table_simple.setFont(new Font(null, Font.PLAIN, 10));
+    			JScrollPane scrollPane_all = new JScrollPane(table_simple);
+    			advancedPane.add("SUMMARY", scrollPane_all);
+    			 */
+    			// Sets a Tab and a JTable per country
+    			for (int i = 0; i < countries.length; i++) {
+    				tables[i] = new JTable();
+    				tables[i].setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+    				tables[i].setFont(new Font(null, Font.PLAIN, 10));
+    				scrollPanels[i] = new JScrollPane(tables[i]);
+    				advancedPane.addTab(countries[i].countryCode, null, scrollPanels[i], countries[i].countryName);
+    			}
+    			testPanel.addTab("Advanced", new JScrollPane(advancedPane));
+    		}
+    		
+    	
+    		// Details
+    		JPanel detailsPane = new JPanel();
+    		//detailsPane.setPreferredSize(new Dimension(WIDTH-50, HEIGHT-100));
+    		{
+    			logArea = new JTextArea();
+    			detailsPane.add(logArea);
+    			
+    			Logger.getRootLogger().addAppender(new AppletLogAppender(logArea));
+    			log.fatal("Details...");
+    			log.fatal("Test...");
+    			testPanel.addTab("Details", new JScrollPane(detailsPane));
+    		}
     	}
+
     	contentPane.add(testPanel);
     	resize(WIDTH, HEIGHT);
-    	
-    	// Logs
-        //logArea = new JTextArea();
-        //JScrollPane scrollPane_log = new JScrollPane(logArea);
-        //tab.add("History",scrollPane_log);
-
     }
 
     public void start() {
@@ -210,13 +205,11 @@ public class Applet extends JApplet implements ActionListener{
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                 	endTest();
-                    //remove(logArea);
                 }
             });
         } catch (Exception e) {
             System.err.println("cleanUp didn't successfully complete");
         }
-        logArea = null;
     }
     
 	public void actionPerformed(ActionEvent e) {
@@ -225,23 +218,26 @@ public class Applet extends JApplet implements ActionListener{
 		}
 		if (startButton.equals(e.getSource())) {
 			if (localCountry != null) {
+				if (JOptionPane.showConfirmDialog(null,
+						"Please, confirm that you are in " + this.localCountry +".\nThis is very important for the test accuracy", 
+						"Country Confirmation",
+						JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
+					return;
+				}
+				testPanel.setEnabled(true);
 				startButton.setEnabled(false);
-				startButton.setText("Cancel");
+				countrySelectionBox.setEnabled(false);
+				startButton.setText("wait");
 				
                 initTest();
-                
+             
 				// Starts all the tester threads
 				for(LatencyTester countryLatencyTester:countryLatencyTesters){
 					countryLatencyTester.start();
 				}
-				startButton.setText("Again");
-				startButton.setEnabled(true);
-				testPanel.setVisible(true);
 			}
-			
 		}
 	}
-	
 	
 	public void initTest() {
 		CentralServer.retrieveTestoPoints("http://simon.lacnic.net/testpoints.txt");
@@ -251,45 +247,61 @@ public class Applet extends JApplet implements ActionListener{
 		countryLatencyTesters = new LatencyTester[countries.length];
 		for(int i = 0; i < countries.length; i++) {
     	   if (countryLatencyTesters[i] == null) {
-    		   countryLatencyTesters[i] = new LatencyTester(this, countries[i], i, graph, numSamples);
+    		   countryLatencyTesters[i] = new LatencyTester(this, countries[i], i, NUM_SAMPLES);
     		   tables[i].setModel(countryLatencyTesters[i].getTableModel()); 
     		   // Change column width
          	   TableColumn col = (tables[i].getColumnModel().getColumn(0));
-        	   col.setPreferredWidth(190);
+        	   col.setPreferredWidth(190);   
     	   }
     	   List<TestPoint> testPointsForCountry = CentralServer.getTestPointsByCountry(countries[i]);
-    	   //System.out.println(countries[i]);
-    	   for(TestPoint testPoint:testPointsForCountry) {
-    		  //System.out.println("\t" + testPoint);	      
+    	   for(TestPoint testPoint:testPointsForCountry) {      
     		  countryLatencyTesters[i].add(testPoint);
 		   }
     	}
-   		AllTableModel tablemodel = new AllTableModel(countryLatencyTesters,countries.length);
-		//table_all.setModel(tablemodel);
-  	    //TableColumn col = (table_all.getColumnModel().getColumn(0));
-	    //col.setPreferredWidth(180);
+//   		AllTableModel tablemodel = new AllTableModel(countryLatencyTesters,countries.length);
 	    
    		SimpleTableModel simpletablemodel = new SimpleTableModel(countryLatencyTesters,countries.length);
 		table_simple.setModel(simpletablemodel);
-  	    //TableColumn simplecol = (table_simple.getColumnModel().getColumn(0));
-	    //simplecol.setPreferredWidth(180);
-
+		
+		TableColumn colCountry = (table_simple.getColumnModel().getColumn(0));
+		colCountry.setPreferredWidth(300);
+		
+		TableColumn colAvg= (table_simple.getColumnModel().getColumn(1));
+		colAvg.setPreferredWidth(150);
+		
+		TableColumn colProg = (table_simple.getColumnModel().getColumn(2));
+		colProg.setCellRenderer(new ProgressCellRenderer());
+		
+		TableColumn colRtt = (table_simple.getColumnModel().getColumn(3));
+ 	    colRtt.setCellRenderer(new LatencyCellRenderer(400));
+ 	    colRtt.setPreferredWidth(400);
+ 	    
+ 	    //table_simple.getTableHeader().getColumnModel().getColumn(3).setCellRenderer(new LatencyCellRenderer(400));
 	}
+	
 	
 	public void endTest() {
-		// Post results
-		/*
-		try {
-			LatencyTester.postResults("http://127.0.0.1/~jmguzman/tests/getresults.php", latencyTester.getSamples());
-		} catch (HttpException e) {
-			System.err.println("Error during results sending: " +e );
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.err.println("Error during results sending: " +e );
-			e.printStackTrace();
-		}
-		*/
+		
 	}
 
-	
+	/**
+	 * Testers call here when they finish
+	 * @param LatencyTester
+	 */
+	public synchronized void  finishedTesterCallbak(LatencyTester latencyTester){
+		log.debug("NOTIFYING " + latencyTester);
+		for(LatencyTester countryLatencyTester:countryLatencyTesters){
+			if (!countryLatencyTester.isFinished()) {
+				log.debug(countryLatencyTester + " NOT finished");
+				return;
+			}
+			log.debug(countryLatencyTester + " finished");
+		}
+		log.info("All testers finished");
+		// re-enable for more tests
+		startButton.setEnabled(true);
+		countrySelectionBox.setEnabled(false);
+		startButton.setText("Restart Tests");
+
+	}
 }

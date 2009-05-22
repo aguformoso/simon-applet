@@ -11,28 +11,41 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.table.TableModel;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.log4j.Logger;
+
+import simon.client.latency.testers.NtpTester;
+import simon.client.latency.testers.TcpTester;
+import simon.client.latency.testers.Tester;
 
 
 public class LatencyTester extends Thread {
-	//static Logger log = Logger.getLogger(LatencyTester.class);
+	static Logger log = Logger.getLogger(LatencyTester.class);
 	
 	ArrayList<TestPoint> testPoints = new ArrayList<TestPoint>();
+	
+	public ArrayList<Integer> countrySamples = new ArrayList<Integer>();
+		
 	LatencyTableModel latencyTableModel;
 	Country country; 
-	Graph graph;
+	//Graph graph;
 	int countrynumber;
 	int noLocation;
 	int nsamples;
 	Applet applet;
-	public LatencyTester(Applet applet, Country country, int countrynumber, Graph graph, int nsamples) {
+	boolean finished=false;
+	
+	public LatencyTester(Applet applet, Country country, int countrynumber, int nsamples) {
+		this.setName("tester(" + country.countryCode + ")");
 		this.country = country;
 		this.latencyTableModel = new LatencyTableModel(this);
-		this.graph = graph;
+		//this.graph = graph;
 		this.countrynumber = countrynumber;
 		this.nsamples = nsamples;
 		this.applet = applet;
@@ -49,28 +62,55 @@ public class LatencyTester extends Thread {
 	}
 
 	public void run() {
-		AppletTester[] testPointThreads = new AppletTester[this.testPoints.size()];
+		log.info("Starting");
+		Tester[] testPointThreads = new Tester[this.testPoints.size()];
 		int i=0;
 		for(TestPoint testPoint:this.testPoints) {
-			    testPointThreads[i] = new AppletTester(this.applet, this, testPoint, nsamples);
-			    testPointThreads[i].start();
+				if (testPoint.testPointType==TestPointType.ntp) {
+					testPointThreads[i] = new NtpTester(this.applet, this, testPoint,nsamples);
+				}
+				if (testPoint.testPointType==TestPointType.tcp_dns) {
+					testPointThreads[i] = new TcpTester(this.applet, this, testPoint, nsamples);
+				}
+				if (testPoint.testPointType==TestPointType.tcp_web) {
+					testPointThreads[i] = new TcpTester(this.applet, this, testPoint,nsamples);
+				}
+			    // Inicia
+			    if ( testPointThreads[i] != null) {
+			    	testPointThreads[i].start();
+			    }    
 			    i++;
 		}
+		
 		// Wait all finish
-		for(AppletTester testPointThread:testPointThreads) {
+		log.info("Running tests..");
+		for(Tester testPointThread:testPointThreads) {
 			try {
+				if (testPointThread!=null) 
 				testPointThread.join();
 			} catch (InterruptedException e) {}
 		}
+		
 		// Post
+		log.info("Posting results..");
 		try {
 			CentralServer.postResults(this);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Error during post: " + e,e);
 		}
 		
+		log.info("Finishing...");
+		this.finished=true;
+		// Notifies that have finished
+		this.applet.finishedTesterCallbak(this);
+		
 	}
+	public boolean isFinished() {
+		return this.finished;
+	}
+	
+	// Moved to different testers.
+	/*
 	TestPoint getLatency(TestPoint testPoint) throws IOException, InterruptedException {
 		if (testPoint.testPointType== TestPointType.NTP)
 			return getUDPLatency(testPoint);
@@ -132,11 +172,12 @@ public class LatencyTester extends Thread {
 		}
 		if (rtt != -1) {
 			testPoint.addSample(rtt);
-			graph.addSample(countrynumber, rtt);
+			countrySamples.add(new Integer((int)rtt));
+			//graph.addSample(countrynumber, rtt);
 		}
 		return testPoint;	      
 	}
-
+	*/
 	public long getNumLocations() {
 		return noLocation;
 	}
@@ -228,9 +269,14 @@ public class LatencyTester extends Thread {
 	    else return Long.toString((this.getNumSamples())+(this.getLost()))+"/"+Long.toString(noLocation*nsamples);
 	}
 	
+	int getPercent() {
+		return  (int) ((this.getNumSamples()+this.getLost())*100/(noLocation*nsamples));
+	}
+	// replaced by a cell Renderer
+	/*
 	public String getComplete() {
 	    if (noLocation==0) return ".................... 0%";
-	    long percent = (this.getNumSamples()+this.getLost())*100/(noLocation*nsamples);
+	    long percent = getPercent();
 	    String sp = "....................";
 	    if (percent>=05) sp="|...................";
 	    if (percent>=10) sp="||..................";
@@ -254,7 +300,7 @@ public class LatencyTester extends Thread {
 	    if (percent>=100) sp="||||||||||||||||||||";
 	    return sp+" "+Long.toString(percent)+"%";
 	}
-	
+	*/
 	
 	public String toString() {
 		return country.countryCode + " -> Min: " + getMin() + "ms; Average: " + getAverage() + "ms; Max: " + getMax() + "ms.";
@@ -264,8 +310,8 @@ public class LatencyTester extends Thread {
 		return this.country.countryCode +  ", " + this.getMin()  + ", " + this.getAverage()+ ", " + this.getMax()  + ", " + getNumSamples() + "\n";
 	}
 	
-	static String [] columnNames = { "Region", "min", "avg", "max", "samples", "losts", "total"};
-	static String [] columnNamesSimple = { "Region", "latency (typical)", "% test" };
+	static String [] columnNamesDetailed = { "Region", "min", "avg", "max", "samples", "losts", "total"};
+	static String [] columnNamesSimple = { "Country/Region", "latency (typ)", "% Test" ,"Dispersion"};
 	
 	static public Class<?> getColumnClass(int columnIndex) {
 		if (columnIndex==0) return String.class;
@@ -292,14 +338,16 @@ public class LatencyTester extends Thread {
 	static public Class<?> getColumnClassSimple(int columnIndex) {
 		if (columnIndex==0) return String.class;
 		if (columnIndex==1) return String.class;
-		if (columnIndex==2) return String.class;
+		if (columnIndex==2) return Long.class;
+		if (columnIndex==3) return (new ArrayList<Integer>()).getClass();
 		return String.class;
 	}
 	
 	public Object getColumnSimple(int columnIndex) {
 		if (columnIndex==0) return this.country.countryName;
-		if (columnIndex==1) return "   "+Long.toString(this.getMedian())+" ms ";
-		if (columnIndex==2) return "   "+this.getComplete();
+		if (columnIndex==1) return Long.toString(this.getMedian())+" ms ";
+		if (columnIndex==2) return new Integer(getPercent());//"   "+this.getComplete();
+		if (columnIndex==3) return countrySamples;
 		return "?";
 	}
 	

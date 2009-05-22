@@ -10,9 +10,9 @@ public class TestPoint {
 
 	Integer id;
 	String description;
-	TestPointType testPointType = TestPointType.UNK;
-	InetAddress ip;
-	String countryCode;
+	public TestPointType testPointType =null;
+	public InetAddress ip;
+	public String countryCode;
 	String creationTime;
 	
 	/**
@@ -32,9 +32,12 @@ public class TestPoint {
 			this.id = Integer.parseInt(t[0]);
 			this.description = t[1];
 			if ("ntp".equalsIgnoreCase(t[2])) 
-				this.testPointType = TestPointType.NTP;
-			if ("tcp".equalsIgnoreCase(t[2])) 
-				this.testPointType = TestPointType.TCP;
+				this.testPointType = TestPointType.ntp;
+			if ("tcp_dns".equalsIgnoreCase(t[2])) 
+				this.testPointType = TestPointType.tcp_dns;
+			if ("tcp_web".equalsIgnoreCase(t[2])) 
+				this.testPointType = TestPointType.tcp_web;
+			
 			this.ip = InetAddress.getByName(t[3]);
 			this.countryCode = t[4];
 			this.creationTime = t[5];	
@@ -108,19 +111,14 @@ public class TestPoint {
 		for(Long sample:samples) {
 			S2 += (sample-avg)*(sample-avg);
 		}
-		// as we have a statistical distribution
-		// the correct is (S2/(numsamples -1))
-		// (S2/numsaples) would be correct for a population
-		// ** PLESE VERIFY THAT ** I am not very good with statistics
-		// Yes, you are right
 		return  (long) Math.sqrt(S2/(getNumSamples()-1));
 	}
 	
-	void addSample(long sample) {
+	public void addSample(long sample) {
 		samples.add(sample);
 	}
 	
-	void addLost() {
+	public void addLost() {
 		nlost ++;
 	}
 
@@ -154,6 +152,17 @@ public class TestPoint {
 		if (columnIndex==6) return this.getLost();
 		if (columnIndex==7) return this.getStdDev();
 		return "?";
+	}
+
+	public boolean isOk() {
+		if (testPointType==null) return false;
+		if (getNumSamples()==0) return false;
+		if (getMinimum()<0) return false;
+		if (getMaximum()>9999) return false;
+		if (getStdDev()>9999) return false;
+		if (getAverage()<5) return false; // proxy en el pc
+		// Everything fine
+		return true;
 	}
 }
 
