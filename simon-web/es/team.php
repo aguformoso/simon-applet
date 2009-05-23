@@ -21,11 +21,17 @@ showMenu("team.php");
 			<li>Milton Kaoru, PTT.br & NAPLA (Brasil)
 			<li>Antonio Moreiras, NIC.br (Brasil)
 			<li>Carlos Ospina, CCIT / NAP Colombia (Colombia)
-			<li>Fabian Mejias, NAP Ecuador (Ecuador)
+			<li>Fabian Mejia, NAP Ecuador (Ecuador)
 			</ul>
 			</div>
 			
 			<h3>Proveedores de Internet</h3>
+			<li>Hernan Arcidiacono, IPLAN (Argentina)
+			<li>Epafras Schaden, CTBC (Brasil)
+			<li>Carlos Eduardo Romero, NET (Brasil)
+			<li>Jose Alejandro Arcila, UNE (Colombia)
+			<li>Luis Carlos Solano, RACSA (Costa Rica)
+			<li>Fabian Mejia, NAP Ecuador (Ecuador)
 			
 			<h3>Proveedores de Contenido</h3>
 			<div class="team">
