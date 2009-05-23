@@ -95,6 +95,7 @@ public class LatencyCellRenderer extends DefaultTableCellRenderer implements Tab
 	        		//Entry<Integer,List<Integer>> entry = it.next ();
 	        		//Iterator <Integer> itDelay = entry.getValue ().iterator ();    		
 	        		//while (itDelay.hasNext ()){
+	        	synchronized (samples) {
 	        		for(Integer delay:samples) {
 	        			//int delay = itDelay.next ();
 	        			//int country = entry.getKey ();    	    		
@@ -116,6 +117,8 @@ public class LatencyCellRenderer extends DefaultTableCellRenderer implements Tab
 	    				g.drawLine(x+1,0,x+1,100);
 	    				//g.fillOval(20+(int)(delay/xscale),5+(int)(yscale*0)+Math.abs((int)(Math.sin(delay*100)*6)), 4, 2);
 	        	     }
+	        	}
+	        		
 	        	//}
 	    	} catch (Exception e) {
 	    		log.error(e.getMessage(),e);

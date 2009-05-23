@@ -73,7 +73,7 @@ public class TcpTester extends Tester {
 			socket.close();
 
 			testPoint.addSample(dt);
-			this.latencyTester.countrySamples.add(new Integer((int) dt));		
+			this.latencyTester.addCountrySamples(new Integer((int) dt));		
 		} catch (Exception e) {
 			log.warn(e.getMessage());
 			testPoint.addLost();

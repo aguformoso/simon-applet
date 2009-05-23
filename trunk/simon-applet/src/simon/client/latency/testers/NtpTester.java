@@ -105,7 +105,7 @@ public class NtpTester extends Tester {
 	
 		if (rtt != -1) {
 			testPoint.addSample(rtt);
-			this.latencyTester.countrySamples.add(new Integer((int)rtt));
+			this.latencyTester.addCountrySamples(new Integer((int)rtt));
 		}
 		return testPoint;	      
 	}
