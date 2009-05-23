@@ -105,13 +105,21 @@ public class CentralServer {
         postMethod.setRequestBody(data);
         postMethod.setRequestHeader("Content-type","text/xml; charset=ISO-8859-1");
         log.info("Sending");
+        log.debug("POST\n"+ data);
         int statusCode = client.executeMethod(postMethod);
-        log.info("Returned");
+       
         // Results
         InputStream is= postMethod.getResponseBodyAsStream();
 		BufferedReader in = new BufferedReader(new InputStreamReader(is));
-		String line=in.readLine();
-		log.info("read");
+		String resultLine = in.readLine();
+		log.info("Returned:"+ resultLine);
+		String result = resultLine+"\n";
+		String line;
+		while( (line=in.readLine())!=null) {
+			result += line+"\n";
+		}
+		
+		log.debug("REPLY\n" + result);
 		// TODO: fix once roque send us just a error code
 		//System.out.println("Result:" + line);
 		if (line!=null && line.indexOf("Success") != -1) {
@@ -119,15 +127,10 @@ public class CentralServer {
 			postMethod.releaseConnection();
 			return;
 		} else {
-			String errorLine = line;
-			String result = line + "\n";
-			while( (line=in.readLine())!= null) {
-				result += line + "\n";
-			}
-			log.error("Server returned error: "  + errorLine);
-			log.debug("Sent: "  + data + "\nResult:\n" + result);
+			log.error("Server returned error: "  + resultLine);
+			log.info("Returned:"+ resultLine);
 			postMethod.releaseConnection();
-			throw new Exception(errorLine);
+			throw new Exception(resultLine);
 		}
 	}
 	

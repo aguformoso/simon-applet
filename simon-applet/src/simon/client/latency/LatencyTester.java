@@ -355,5 +355,12 @@ public class LatencyTester extends Thread {
 	TableModel getTableModel() {
 		return latencyTableModel;
 	}
+
+	public void addCountrySamples(Integer integer) {
+		synchronized(countrySamples) {
+			countrySamples.add(integer);
+		}
+		
+	}
 	
 }
