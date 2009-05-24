@@ -122,7 +122,7 @@ public class CentralServer {
 		log.debug("REPLY\n" + result);
 		// TODO: fix once roque send us just a error code
 		//System.out.println("Result:" + line);
-		if (line!=null && line.indexOf("Success") != -1) {
+		if (resultLine!=null && resultLine.indexOf("Success") != -1) {
 			log.info("Post accepted");
 			postMethod.releaseConnection();
 			return;
@@ -135,6 +135,10 @@ public class CentralServer {
 	}
 	
 	static void postXmlResults(String url, LatencyTester latencyTester, Country country) throws Exception {
+		postXmlResults(url, latencyTester.testPoints, country);
+	}
+
+	static void postXmlResults(String url, ArrayList<TestPoint> testPoints, Country country) throws Exception {
 		// I am doing this, this way (old school), to avoid include in the applet all the 
 		// libs required to do it with the current implementations
 		StringBuffer data = new StringBuffer();
@@ -149,7 +153,7 @@ public class CentralServer {
 							   String.format("%+03d:%02d", zonehh, zonemm) +"</time>\n");
 		data.append("<local_country>"+country.countryCode+"</local_country>\n");
 		
-		for(TestPoint testPoint:latencyTester.testPoints) {
+		for(TestPoint testPoint:testPoints) {
 			if (testPoint.ip != null) {
 				//String testtype=null;
 				//if (testPoint.testPointType==TestPointType.NTP) testtype="ntp";
@@ -157,23 +161,22 @@ public class CentralServer {
 				//if (testPoint.testPointType==TestPointType.ICMP) testtype="icmp_echo";
 				if (testPoint.isOk()) {
 					data.append("<test>\n");
-					data.append("    <destination_ip>" + testPoint.ip.getHostAddress() + "</destination_ip>\n");
-					data.append("    <testtype>" + testPoint.testPointType + "</testtype>\n");
-					data.append("    <number_probes>" + testPoint.getNumSamples() + "</number_probes>\n");
-					data.append("    <min_rtt>" + testPoint.getMinimum() + "</min_rtt>\n");
-					data.append("    <max_rtt>" + testPoint.getMaximum() + "</max_rtt>\n");
-					data.append("    <ave_rtt>" + testPoint.getAverage() + "</ave_rtt>\n");
-					data.append("    <dev_rtt>" + testPoint.getStdDev() + "</dev_rtt>\n");
-					data.append("    <median_rtt>" + testPoint.getMedian() + "</median_rtt>\n");
-					data.append("    <packet_loss>" + 0 +  "</packet_loss>\n");
+					data.append("<destination_ip>" + testPoint.ip.getHostAddress() + "</destination_ip>\n");
+					data.append("<testtype>" + testPoint.testPointType + "</testtype>\n");
+					data.append("<number_probes>" + testPoint.getNumSamples() + "</number_probes>\n");
+					data.append("<min_rtt>" + testPoint.getMinimum() + "</min_rtt>\n");
+					data.append("<max_rtt>" + testPoint.getMaximum() + "</max_rtt>\n");
+					data.append("<ave_rtt>" + testPoint.getAverage() + "</ave_rtt>\n");
+					data.append("<dev_rtt>" + testPoint.getStdDev() + "</dev_rtt>\n");
+					data.append("<median_rtt>" + testPoint.getMedian() + "</median_rtt>\n");
+					data.append("<packet_loss>" + 0 +  "</packet_loss>\n");
 					data.append("</test>\n");			
 				}
 			}
 		}
-		data.append("</simon>\n");
+		data.append("</simon>\n\n");
 		postResults(url, data.toString());
 	}
-
 	static void postResults(LatencyTester latencyTester) throws Exception {
 		postXmlResults(postUrl,latencyTester, localCountry );
 	}
@@ -184,5 +187,28 @@ public class CentralServer {
 
 	public static void setLocalCountry(Country localCountry) {
 		CentralServer.localCountry = localCountry;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		String xml = "";
+		ArrayList<TestPoint> testPoints = new ArrayList<TestPoint>();
+
+		for (int i=0;i<12;i++) 
+		{
+			TestPoint testPoint = new TestPoint("999,Chile,tcp_web,200.1.123."+i+",CL,2009-05-08 00:00:00");
+			testPoint.addSample(10);
+			testPoint.addSample(20);
+			testPoint.addSample(30);
+			testPoints.add(testPoint);
+		}
+
+		
+		
+		
+		//CentralServer.postXmlResults("http://10.0.0.72:1234/cgi-bin/simonpost.cgi", testPoints, new Country("XX","test"));
+		
+		CentralServer.postXmlResults("http://simon.lacnic.net/cgi-bin/simonpost.cgi", testPoints, new Country("XX","test"));
+
+		
 	}
 }
