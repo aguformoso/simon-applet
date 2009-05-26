@@ -15,9 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.table.TableModel;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.PostMethod;
+
 import org.apache.log4j.Logger;
 
 import simon.client.latency.testers.NtpTester;
@@ -36,10 +34,18 @@ public class LatencyTester extends Thread {
 	Country country; 
 	//Graph graph;
 	int countrynumber;
-	int noLocation;
+	int numTestPoints;
 	int nsamples;
 	Applet applet;
 	boolean finished=false;
+	
+	int expectedSamples;
+	int capturedSamples = 0;
+	int lostSamples = 0;
+	
+	enum Status { NOSTARTED, TESTING, POSTING, DONE, ERROR };
+	
+	Status status = Status.NOSTARTED;
 	
 	public LatencyTester(Applet applet, Country country, int countrynumber, int nsamples) {
 		this.setName("tester(" + country.countryCode + ")");
@@ -49,12 +55,13 @@ public class LatencyTester extends Thread {
 		this.countrynumber = countrynumber;
 		this.nsamples = nsamples;
 		this.applet = applet;
-		noLocation = 0;
+		numTestPoints = 0;
 	}
 
 	void add(TestPoint site) {
 		testPoints.add(site);
-		noLocation++;
+		numTestPoints++;
+		this.expectedSamples += nsamples;
 	}
 	
 	ArrayList<TestPoint> getSamples() {
@@ -65,6 +72,8 @@ public class LatencyTester extends Thread {
 		log.info("Starting");
 		Tester[] testPointThreads = new Tester[this.testPoints.size()];
 		int i=0;
+		this.status = Status.TESTING;
+		
 		for(TestPoint testPoint:this.testPoints) {
 				if (testPoint.testPointType==TestPointType.ntp) {
 					testPointThreads[i] = new NtpTester(this.applet, this, testPoint,nsamples);
@@ -87,18 +96,21 @@ public class LatencyTester extends Thread {
 		for(Tester testPointThread:testPointThreads) {
 			try {
 				if (testPointThread!=null) 
-				testPointThread.join();
+					testPointThread.join();
 			} catch (InterruptedException e) {}
 		}
 		
 		// Post
 		log.info("Posting results..");
+		this.status = Status.POSTING;
 		try {
 			CentralServer.postResults(this);
+			this.status = Status.DONE;
 		} catch (Exception e) {
 			log.error("Error during post: " + e,e);
+			this.status = Status.ERROR;
 		}
-		
+		//this.applet.repaint();
 		log.info("Finishing...");
 		this.finished=true;
 		// Notifies that have finished
@@ -109,84 +121,15 @@ public class LatencyTester extends Thread {
 		return this.finished;
 	}
 	
-	// Moved to different testers.
-	/*
-	TestPoint getLatency(TestPoint testPoint) throws IOException, InterruptedException {
-		if (testPoint.testPointType== TestPointType.NTP)
-			return getUDPLatency(testPoint);
-		if (testPoint.testPointType== TestPointType.TCP)
-			return getTcpLatency(testPoint);
-		
-		// Unknown protocol
-		return null;
-	}
-	private TestPoint getTcpLatency(TestPoint testPoint) throws IOException {
-		InetAddress ip = testPoint.ip;
-		SocketAddress address = new InetSocketAddress(ip, 80);
-		//log.debug("address=" + address);
-		long ti=System.currentTimeMillis();
-		Socket socket = new Socket();
-		socket.connect(address);
-		long dt=System.currentTimeMillis() - ti;
-		socket.close();
-
-		testPoint.addSample(dt);
-		return testPoint;	
-	}
-	
-	private TestPoint getUDPLatency(TestPoint testPoint) throws IOException, InterruptedException {
-		// wait a bit (the same amount between tests)...
-		// I think it could help not to create local buffers for the sent packets,
-		// that could cause some delay and imprecision
-		// It should give the user the feeling of a continuous testing...
-		int time = 1 + (int)(Math.random() * 16000);
-		Thread.sleep(time); 
-		// Send request
-		long rtt;
-		DatagramSocket socket = new DatagramSocket();
-		InetAddress address = testPoint.ip;
-		byte[] buf = new NtpMessage().toByteArray();
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);	
-		NtpMessage.encodeTimestamp(packet.getData(), 40, (System.nanoTime()/1000000000.0) + 2208988800.0);		
-		socket.send(packet);
-		// Get response
-		packet = new DatagramPacket(buf, buf.length);
-		socket.setSoTimeout(2000); // wait (max) two seconds for a response
-		try {
-		   socket.receive(packet);		
-		   double destinationTimestamp = (System.nanoTime()/1000000000.0) + 2208988800.0;	
-		   // Process response
-		   // We only need to calculate RTT...
-		   // The local time not need to be accurate to do it!
-		   NtpMessage msg = new NtpMessage(packet.getData());
-		   Double dt = 1000*((destinationTimestamp-msg.originateTimestamp) - (msg.transmitTimestamp-msg.receiveTimestamp));
-		   rtt = dt.longValue();		   
-		}
-		catch (SocketTimeoutException e) {
-		   rtt = -1;
-		   System.out.println("socket timeout");
-		   testPoint.addLost();
-		}  
-		finally {
-			socket.close();
-		}
-		if (rtt != -1) {
-			testPoint.addSample(rtt);
-			countrySamples.add(new Integer((int)rtt));
-			//graph.addSample(countrynumber, rtt);
-		}
-		return testPoint;	      
-	}
-	*/
 	public long getNumLocations() {
-		return noLocation;
+		return numTestPoints;
 	}
 	
 	public long getMin() {
-        if (noLocation==0) return -1;
+        if (numTestPoints==0) return -1;
         else {
             long min=9999;
-        	for (int i=0; i<noLocation; i++) {
+        	for (int i=0; i<numTestPoints; i++) {
 			   if ((testPoints.get(i).getMinimum()<min) & (testPoints.get(i).getMinimum()!=-1)) min=testPoints.get(i).getMinimum();
         	}
         return min;	
@@ -194,10 +137,10 @@ public class LatencyTester extends Thread {
 	}
 	
 	public long getMax() {
-        if (noLocation==0) return -1;
+        if (numTestPoints==0) return -1;
         else {
             long max=0;
-        	for (int i=0; i<noLocation; i++) {
+        	for (int i=0; i<numTestPoints; i++) {
 			   if (testPoints.get(i).getMaximum()>max) max=testPoints.get(i).getMaximum();
         	}
         return max;	
@@ -205,11 +148,11 @@ public class LatencyTester extends Thread {
 	}
 	
 	public long getAverage() {
-        if (noLocation==0) return -1;
+        if (numTestPoints==0) return -1;
         else {
         	long sum = 0;
         	long samples = 0;
-            for (int i=0; i<noLocation; i++) {
+            for (int i=0; i<numTestPoints; i++) {
 			   sum += ((testPoints.get(i).getAverage())*(testPoints.get(i).getNumSamples()));
 			   samples += testPoints.get(i).getNumSamples();
         	}
@@ -218,9 +161,9 @@ public class LatencyTester extends Thread {
         }	
 	}
 	public long getMedian() {
-		if (noLocation==0) return -1;	
+		if (numTestPoints==0) return -1;	
 		ArrayList<Long> myArray=new ArrayList<Long>();
-		for (int i=0; i<noLocation; i++) {
+		for (int i=0; i<numTestPoints; i++) {
 			if ((testPoints.get(i).getMedian())>0) myArray.add(testPoints.get(i).getMedian());
 		}
         Collections.sort(myArray);
@@ -243,10 +186,10 @@ public class LatencyTester extends Thread {
     }
 	
 	public long getNumSamples() {
-        if (noLocation==0) return -1;
+        if (numTestPoints==0) return -1;
         else {
         	long samples = 0;
-            for (int i=0; i<noLocation; i++) {
+            for (int i=0; i<numTestPoints; i++) {
 			   samples += testPoints.get(i).getNumSamples();
         	}
         return samples;	
@@ -254,10 +197,10 @@ public class LatencyTester extends Thread {
 	}
 	
 	public long getLost() {
-        if (noLocation==0) return -1;
+        if (numTestPoints==0) return -1;
         else {
         	long losts = 0;
-            for (int i=0; i<noLocation; i++) {
+            for (int i=0; i<numTestPoints; i++) {
 			   losts += testPoints.get(i).getLost();
         	}
         return losts;	
@@ -265,12 +208,21 @@ public class LatencyTester extends Thread {
 	}
 	
 	public String getTotal() {
-	    if (noLocation==0) return "0/0";
-	    else return Long.toString((this.getNumSamples())+(this.getLost()))+"/"+Long.toString(noLocation*nsamples);
+	    if (numTestPoints==0) return "0/0";
+	    else return Long.toString((this.getNumSamples())+(this.getLost()))+"/"+Long.toString(numTestPoints*nsamples);
 	}
 	
 	int getPercent() {
-		return  (int) ((this.getNumSamples()+this.getLost())*100/(noLocation*nsamples));
+		//return  (int) ((this.getNumSamples()+this.getLost())*100/(numTestPoints*nsamples));
+		if (this.status==Status.POSTING) return 200;
+		if (this.status==Status.DONE) return 300;
+		if (this.status==Status.ERROR) return -1;
+		
+		//log.info("PERCENT: " + this.capturedSamples+ "," + this.lostSamples+ "," + this.expectedSamples);
+		if (this.expectedSamples>0)
+			return (100*(this.capturedSamples+this.lostSamples))/this.expectedSamples;
+		
+		return 0;
 	}
 	// replaced by a cell Renderer
 	/*
@@ -346,7 +298,7 @@ public class LatencyTester extends Thread {
 	public Object getColumnSimple(int columnIndex) {
 		if (columnIndex==0) return this.country.countryName;
 		if (columnIndex==1) return Long.toString(this.getMedian())+" ms ";
-		if (columnIndex==2) return new Integer(getPercent());//"   "+this.getComplete();
+		if (columnIndex==2) return new Integer(getPercent());
 		if (columnIndex==3) return countrySamples;
 		return "?";
 	}
@@ -359,8 +311,11 @@ public class LatencyTester extends Thread {
 	public void addCountrySamples(Integer integer) {
 		synchronized(countrySamples) {
 			countrySamples.add(integer);
+			this.capturedSamples++;
 		}
 		
 	}
-	
+	public void addCountrySamples() {
+		this.lostSamples++;
+	}
 }

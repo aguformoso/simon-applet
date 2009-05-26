@@ -23,15 +23,13 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.table.TableColumn;
-
-import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 
 public class Applet extends JApplet implements ActionListener{
 	
 	private static final long serialVersionUID = 1L;
 	static Logger log = Logger.getLogger(Applet.class);
-	
+	static String VERSION = "v1.02";
 	int WIDTH = 640;
 	int HEIGHT = 480;
 	int NUM_SAMPLES = 5;
@@ -39,6 +37,7 @@ public class Applet extends JApplet implements ActionListener{
     JButton startButton;
     JComboBox countrySelectionBox;
     JTabbedPane testPanel;
+    JLabel statusLabel;
     //Graph graph;
     
     JTable tables[];
@@ -81,12 +80,17 @@ public class Applet extends JApplet implements ActionListener{
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    createGUI();
+                	createGUI();
                 }
             });
+            Thread initializer = new Thread() {
+                public void run() {
+                	initTest();
+                }
+            };
+            initializer.start();
         } catch (Exception e) {
-            System.err.println("createGUI didn't successfully complete");
-            e.printStackTrace();
+        	log.error("createGUI didn't successfully complete:"+e.getMessage(),e);
         }
     }
 
@@ -109,7 +113,7 @@ public class Applet extends JApplet implements ActionListener{
         		countryNames[c+1]=countries[c];
         	}
         	countrySelectionBox = new JComboBox(countryNames);
-            countrySelectionBox.setEnabled(true);
+            countrySelectionBox.setEnabled(false);
             countrySelectionBox.addActionListener(this);
             userPanel.add(countrySelectionBox);
             
@@ -119,6 +123,17 @@ public class Applet extends JApplet implements ActionListener{
     	}
         contentPane.add(userPanel);
 
+        // Status
+        JPanel statusPanel = new JPanel();
+        statusPanel.setBackground(new Color(255,255,128));
+        statusPanel.setSize(WIDTH-10, 12);
+        {
+        	statusLabel = new JLabel(" ");
+        	statusLabel.setFont(new Font(null, Font.PLAIN, 12));
+        	statusPanel.add(statusLabel);
+        }
+        contentPane.add(statusPanel);
+        
         // Test
     	testPanel = new JTabbedPane();
     	testPanel.setEnabled(false);
@@ -182,14 +197,15 @@ public class Applet extends JApplet implements ActionListener{
     			detailsPane.add(logArea);
     			
     			Logger.getRootLogger().addAppender(new AppletLogAppender(logArea));
-    			log.fatal("Details...");
-    			log.fatal("Test...");
+    			//log.fatal("Details...");
+    			//log.fatal("Test...");
     			testPanel.addTab("Details", new JScrollPane(detailsPane));
     		}
     	}
 
     	contentPane.add(testPanel);
     	resize(WIDTH, HEIGHT);
+    	repaint();
     }
 
     public void start() {
@@ -224,26 +240,47 @@ public class Applet extends JApplet implements ActionListener{
 						JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
 					return;
 				}
+				this.statusLabel.setText("Starting tests.. ");
+
 				testPanel.setEnabled(true);
 				startButton.setEnabled(false);
 				countrySelectionBox.setEnabled(false);
 				startButton.setText("wait");
 				
-                initTest();
-             
-				// Starts all the tester threads
-				for(LatencyTester countryLatencyTester:countryLatencyTesters){
-					countryLatencyTester.start();
-				}
+				startTests();
+				/*
+                try {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                        	
+                        }
+                    });
+                } catch (Exception ee) {
+                    log.error(ee);
+                }*/
+                this.statusLabel.setText("WAIT, performing test.. do not interrupt or close the window... ");                
+			} else {
+				this.statusLabel.setText("You must select your contry, first");
 			}
 		}
 	}
+
 	
 	public void initTest() {
+		this.statusLabel.setText("Loading information.. wait please");
+		this.repaint();
+		
 		CentralServer.retrieveTestoPoints("http://simon.lacnic.net/testpoints.txt");
 		CentralServer.setPostUrl("http://simon.lacnic.net/cgi-bin/simonpost.cgi");
-		CentralServer.setLocalCountry(localCountry);
 		
+		this.statusLabel.setText("simon-applet " + VERSION);
+		this.countrySelectionBox.setEnabled(true);
+		this.repaint();
+	}
+	
+	public void startTests() {
+		CentralServer.setLocalCountry(localCountry);
+
 		countryLatencyTesters = new LatencyTester[countries.length];
 		for(int i = 0; i < countries.length; i++) {
     	   if (countryLatencyTesters[i] == null) {
@@ -277,6 +314,11 @@ public class Applet extends JApplet implements ActionListener{
  	    colRtt.setPreferredWidth(400);
  	    
  	    //table_simple.getTableHeader().getColumnModel().getColumn(3).setCellRenderer(new LatencyCellRenderer(400));
+ 	    
+ 	    // Starts all the tester threads
+		for(LatencyTester countryLatencyTester:countryLatencyTesters){
+			countryLatencyTester.start();
+		}
 	}
 	
 	
@@ -289,19 +331,23 @@ public class Applet extends JApplet implements ActionListener{
 	 * @param LatencyTester
 	 */
 	public synchronized void  finishedTesterCallbak(LatencyTester latencyTester){
-		log.debug("NOTIFYING " + latencyTester);
+		//log.debug("NOTIFYING " + latencyTester);
+		this.repaint();
 		for(LatencyTester countryLatencyTester:countryLatencyTesters){
 			if (!countryLatencyTester.isFinished()) {
-				log.debug(countryLatencyTester + " NOT finished");
+				//log.debug(countryLatencyTester + " NOT finished");
 				return;
 			}
-			log.debug(countryLatencyTester + " finished");
+			//log.debug(countryLatencyTester + " finished");
 		}
 		log.info("All testers finished");
+		this.statusLabel.setText("Tests finished..");
 		// re-enable for more tests
 		startButton.setEnabled(true);
 		countrySelectionBox.setEnabled(false);
 		startButton.setText("Restart Tests");
+		this.repaint();
+		
 
 	}
 }

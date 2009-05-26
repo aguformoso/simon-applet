@@ -46,11 +46,12 @@ public class NtpTester extends Tester {
 					Thread.sleep(INTERVAL);
 				}
 				testPoint = getUDPLatency(testPoint);
-				SwingUtilities.invokeAndWait(new Runnable() {
+				applet.repaint();
+				/*SwingUtilities.invokeAndWait(new Runnable() {
 					public void run() {
 						applet.repaint();
 					}
-				});
+				});*/
 				// NTP servers generally have a rate limit...
 				// It would be better to put 16s here, but, in a real world
 				// it is possible to use less (about 5s, for example)
@@ -76,21 +77,27 @@ public class NtpTester extends Tester {
 		DatagramSocket socket = new DatagramSocket();
 		InetAddress address = testPoint.ip;
 		byte[] buf = new NtpMessage().toByteArray();
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);	
-		NtpMessage.encodeTimestamp(packet.getData(), 40, (System.nanoTime()/1000000000.0) + 2208988800.0);		
-		socket.send(packet);
-		// Get response
-		packet = new DatagramPacket(buf, buf.length);
-		socket.setSoTimeout(2000); // wait (max) two seconds for a response
-		try {
-		   socket.receive(packet);		
-		   double destinationTimestamp = (System.nanoTime()/1000000000.0) + 2208988800.0;	
-		   // Process response
-		   // We only need to calculate RTT...
-		   // The local time not need to be accurate to do it!
-		   NtpMessage msg = new NtpMessage(packet.getData());
-		   Double dt = 1000*((destinationTimestamp-msg.originateTimestamp) - (msg.transmitTimestamp-msg.receiveTimestamp));
-		   rtt = dt.longValue();		   
+		
+		try {	
+			socket.setSoTimeout(2000); // wait (max) two seconds for a response
+			// Transmits
+			DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);	
+			NtpMessage.encodeTimestamp(packet.getData(), 40, (System.nanoTime()/1000000000.0) + 2208988800.0);	
+			long ti=System.currentTimeMillis();
+			socket.send(packet);
+			// Get response
+			packet = new DatagramPacket(buf, buf.length);
+			socket.receive(packet);	
+		    rtt=System.currentTimeMillis()-ti;
+		    double destinationTimestamp = (System.nanoTime()/1000000000.0) + 2208988800.0;	
+		    /*
+		    Testing to see if we avoid the ~1800ms times. 
+		    // We only need to calculate RTT...
+		    // The local time not need to be accurate to do it!
+		    NtpMessage msg = new NtpMessage(packet.getData());
+		    Double dt = 1000*((destinationTimestamp-msg.originateTimestamp) - (msg.transmitTimestamp-msg.receiveTimestamp));
+		    rtt = dt.longValue();	
+		    */	 
 		}
 		catch (SocketTimeoutException e) {
 			log.warn(e.getMessage());
