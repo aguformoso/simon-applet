@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -11,10 +13,28 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRouteBean;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 public class CentralServer {
@@ -28,21 +48,60 @@ public class CentralServer {
 	static Hashtable<String,ArrayList<TestPoint> > testPointsByContryCode = 
 		new Hashtable<String,ArrayList<TestPoint> >();
 	
+	// HTTP Client
+	
+	//static HttpConnectionManagerParams httpConnectionManagerParams;
+	//static MultiThreadedHttpConnectionManager httpConnectionManager;
+	static HttpClient httpClient;
+	
 	// Parametros
 	static String postUrl;
 	static Country localCountry;
 	
+	static {
+		// Create and initialize HTTP parameters
+        HttpParams params = new BasicHttpParams();
+        ConnManagerParams.setMaxTotalConnections(params, 100);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, new ConnPerRouteBean(100) );
+        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+        
+		// Create and initialize scheme registry 
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        schemeRegistry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+        
+        // Create an HttpClient with the ThreadSafeClientConnManager.
+        // This connection manager must be used if more than one thread will
+        // be using the HttpClient.
+        ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+        httpClient = new DefaultHttpClient(cm, params);
+
+        /*
+		// Initialize a multithreaded http client
+		httpConnectionManagerParams = new HttpConnectionManagerParams();
+		httpConnectionManager = new MultiThreadedHttpConnectionManager();
+		httpConnectionManagerParams = httpConnectionManager.getParams();
+		httpConnectionManagerParams.setDefaultMaxConnectionsPerHost(100);
+		
+		httpConnectionManagerParams.setMaxTotalConnections(100);		
+		httpConnectionManagerParams.setConnectionTimeout(8000);
+		httpClient = new HttpClient(httpConnectionManager);
+		*/
+	}
+	
 	static void retrieveTestoPoints(String parametersUrl) {
 		log.info("Retrieving test points");
-		HttpClient client = new HttpClient();
-        GetMethod getMethod = new GetMethod(parametersUrl);
+		//HttpClient client = new HttpClient();
+		HttpGet getMethod = new HttpGet(parametersUrl);
         
         try {
         	String line;
-			int statusCode = client.executeMethod(getMethod);
+			//int statusCode = client.executeMethod(getMethod);
+			HttpResponse response = httpClient.execute(getMethod, new BasicHttpContext());
 			//System.out.println("statusCode:"+statusCode);
-			InputStream is= getMethod.getResponseBodyAsStream();
-			BufferedReader in = new BufferedReader(new InputStreamReader(is));
+			HttpEntity entity = response.getEntity();
+			//InputStream is= getMethod.getResponseBodyAsStream();
+			BufferedReader in = new BufferedReader(new StringReader(EntityUtils.toString(entity)));
 			while( (line=in.readLine()) != null) {
 				//System.out.println("line:"+line);
 				try {
@@ -61,7 +120,7 @@ public class CentralServer {
 					System.err.println("Error:" + e);
 				}
 			}
-			getMethod.releaseConnection();
+			//getMethod.releaseConnection();
 			ArrayList<TestPoint> tps = testPointsByContryCode.get("CL");
 			try {
 				tps.add(new TestPoint("999,Chile,tcp_web,200.1.123.3,CL,2009-05-08 00:00:00"));
@@ -71,8 +130,8 @@ public class CentralServer {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		} catch (HttpException e) {
-			log.error("Error Connecting Server:" + e);
+		//} catch (HttpException e) {
+		//	log.error("Error Connecting Server:" + e);
 		} catch (IOException e) {
 			log.error("Error Connecting Server:" + e);
 		}   
@@ -96,41 +155,80 @@ public class CentralServer {
 	}
 	
 	
-	private static synchronized void postResults(String url,String data) throws Exception {
+	private static void postResults(String url,String data) throws Exception {
 		log.info("Opening conection");
-		HttpClient client = new HttpClient();
+		
+		//HttpMethodParams httpMethodParams = new HttpMethodParams();
+		//httpMethodParams.setVersion(HttpVersion.HTTP_1_0);
+		
+		
+		long ti = System.currentTimeMillis();
+	/*
         PostMethod postMethod = new PostMethod(url);
+       // postMethod.getParams()
         //System.out.println("Uploading:\n" + data);
-        //client.setConnectionTimeout(8000);
+        //httpClient.setConnectionTimeout(8000);
         postMethod.setRequestBody(data);
+       // postMethod.getParams().setVersion(HttpVersion.HTTP_1_0);
         postMethod.setRequestHeader("Content-type","text/xml; charset=ISO-8859-1");
-        log.info("Sending");
+        //postMethod.getHostConfiguration()
+		httpConnectionManagerParams.setMaxConnectionsPerHost(httpClient.getHostConfiguration(), 100);
+		
+		 log.info("Sending");
         log.debug("POST\n"+ data);
-        int statusCode = client.executeMethod(postMethod);
-       
-        // Results
-        InputStream is= postMethod.getResponseBodyAsStream();
+        int statusCode = 0;
+        
+        try {
+        	statusCode = httpClient.executeMethod(postMethod);
+        } catch (SocketException e) {
+        	// Si hay timeout, trata de nuevo
+        	log.warn(e.getMessage() + ": reintentando..");
+        	statusCode = httpClient.executeMethod(postMethod);
+        }
+        if (statusCode!=200) {
+        	long dt=System.currentTimeMillis()-ti;
+        	log.warn("Status Code:"+ statusCode + " in " + dt +" ms");
+        	postMethod.releaseConnection();
+			throw new Exception("Status Code:"+ statusCode);
+        }
+        log.info("Reading");
+          InputStream is= postMethod.getResponseBodyAsStream();
 		BufferedReader in = new BufferedReader(new InputStreamReader(is));
-		String resultLine = in.readLine();
-		log.info("Returned:"+ resultLine);
-		String result = resultLine+"\n";
+
+	 */
+		HttpPost postMethod = new HttpPost(url);
+		StringEntity reqEntity = new StringEntity(data);
+		reqEntity.setContentType("text/xml; charset=ISO-8859-1");
+		postMethod.setEntity(reqEntity);
+		HttpResponse response = httpClient.execute(postMethod, new BasicHttpContext());
+		HttpEntity entity = response.getEntity();
+		BufferedReader in = new BufferedReader(new StringReader(EntityUtils.toString(entity)));
+		
+		
+
+        // Results
+      
+		String result = "";
 		String line;
+		boolean ok=false;
 		while( (line=in.readLine())!=null) {
 			result += line+"\n";
+			if (line !=null && line.startsWith("END")) {
+				log.info("END received");
+				ok=true;
+			}
 		}
-		
-		log.debug("REPLY\n" + result);
-		// TODO: fix once roque send us just a error code
-		//System.out.println("Result:" + line);
-		if (resultLine!=null && resultLine.indexOf("Success") != -1) {
-			log.info("Post accepted");
-			postMethod.releaseConnection();
+        long dt=System.currentTimeMillis()-ti;
+
+		if (ok) {
+			log.info("Post accepted in " + dt + " ms");
+			//postMethod.releaseConnection();
 			return;
 		} else {
-			log.error("Server returned error: "  + resultLine);
-			log.info("Returned:"+ resultLine);
-			postMethod.releaseConnection();
-			throw new Exception(resultLine);
+			log.error("Post NOT accepted in " + dt + " ms!" );
+			log.debug("Returned:"+ result);
+			//postMethod.releaseConnection();
+			throw new Exception("POST not accepted");
 		}
 	}
 	
@@ -155,10 +253,6 @@ public class CentralServer {
 		
 		for(TestPoint testPoint:testPoints) {
 			if (testPoint.ip != null) {
-				//String testtype=null;
-				//if (testPoint.testPointType==TestPointType.NTP) testtype="ntp";
-				//if (testPoint.testPointType==TestPointType.TCP) testtype="tcp_connection";
-				//if (testPoint.testPointType==TestPointType.ICMP) testtype="icmp_echo";
 				if (testPoint.isOk()) {
 					data.append("<test>\n");
 					data.append("<destination_ip>" + testPoint.ip.getHostAddress() + "</destination_ip>\n");
@@ -191,24 +285,30 @@ public class CentralServer {
 	
 	public static void main(String[] args) throws Exception {
 		String xml = "";
-		ArrayList<TestPoint> testPoints = new ArrayList<TestPoint>();
+		
+		
 
-		for (int i=0;i<12;i++) 
-		{
-			TestPoint testPoint = new TestPoint("999,Chile,tcp_web,200.1.123."+i+",CL,2009-05-08 00:00:00");
-			testPoint.addSample(10);
-			testPoint.addSample(20);
-			testPoint.addSample(30);
-			testPoints.add(testPoint);
-		}
-
-		
-		
-		
 		//CentralServer.postXmlResults("http://10.0.0.72:1234/cgi-bin/simonpost.cgi", testPoints, new Country("XX","test"));
-		
-		CentralServer.postXmlResults("http://simon.lacnic.net/cgi-bin/simonpost.cgi", testPoints, new Country("XX","test"));
-
+		for (int i=0;i<10;i++) {
+			Thread test = new Thread() {
+				public void run() {
+					try {
+						ArrayList<TestPoint> testPoints = new ArrayList<TestPoint>();
+						for (int i=0;i<12;i++) 
+						{
+							TestPoint testPoint = new TestPoint("999,Chile,tcp_web,200.1.123."+i+",CL,2009-05-08 00:00:00");
+							testPoint.addSample(10);
+							testPoint.addSample(20);
+							testPoint.addSample(30);
+							testPoints.add(testPoint);
+						}
+						CentralServer.postXmlResults("http://simon.lacnic.net/cgi-bin/simonpost.cgi", testPoints, new Country("XX","test"));
+					} catch (Exception e) {}
+					
+				}
+			};
+			test.start();
+		}
 		
 	}
 }
