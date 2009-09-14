@@ -3,7 +3,7 @@
 <!--this file was created by Eclipse Runnable JAR Export Wizard-->
 <!--ANT 1.7 is required                                        -->
 	
-	<property name="proj" location="/Users/jmguzman/Documents/workspace/production/simon-applet" />
+	<property name="proj" location="/Users/rgaglian/Documents/workspace/Simon" />
 	<target name="create_run_jar">
 		<jar destfile="${proj}/jar/simon-applet.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
