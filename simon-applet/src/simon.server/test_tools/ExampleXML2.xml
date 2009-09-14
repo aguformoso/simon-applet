@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simon xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<version>1</version>
+<date>2009-04-20</date>
+<time>13:20:00-05:00</time>
+<local_country>UY</local_country>
+<test>
+	<destination_ip>190.6.196.206</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>200.3.200.55</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>190.6.196.206</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>200.3.200.55</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>190.6.196.206</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>200.3.200.55</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>190.6.196.206</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>200.3.200.55</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>190.6.196.206</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>200.3.200.55</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>190.6.196.206</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>200.3.200.55</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>3</number_probes>
+	<min_rtt>114</min_rtt>
+	<max_rtt>130</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>0</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+<test>
+	<destination_ip>201.217.17.110</destination_ip>
+	<testtype>ntp</testtype>
+	<number_probes>5</number_probes>
+	<min_rtt>115</min_rtt>
+	<max_rtt>134</max_rtt>
+	<ave_rtt>120</ave_rtt>
+	<dev_rtt>10</dev_rtt>
+	<median_rtt>130</median_rtt>
+	<packet_loss>1</packet_loss>
+</test>
+</simon>
