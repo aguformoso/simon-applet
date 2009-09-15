@@ -6,7 +6,6 @@ include "header.php";
 showTop();
 showMenu("index.php");
 ?>
-
 		<div class="left">
 			<h3>Novedades:</h3>
 			<div class="left_box">
