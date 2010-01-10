@@ -121,18 +121,21 @@ public class CentralServer {
 				}
 			}
 			//getMethod.releaseConnection();
-			ArrayList<TestPoint> tps = testPointsByContryCode.get("CL");
-			try {
+			/* Roque - This were Jose Miguels test points for Chile.
+			ArrayList<TestPoint> tps = testPointsByContryCode.get("CL"); 
+			  try {
 				tps.add(new TestPoint("999,Chile,tcp_web,200.1.123.3,CL,2009-05-08 00:00:00"));
 				tps.add(new TestPoint("999,Chile,tcp_web,146.82.90.31,CL,2009-05-08 00:00:00"));
 				tps.add(new TestPoint("999,Chile,tcp_dns,200.1.123.4,CL,2009-05-08 00:00:00"));
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+			 //	TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			*/
 		//} catch (HttpException e) {
 		//	log.error("Error Connecting Server:" + e);
-		} catch (IOException e) {
+
+        } catch (IOException e) {
 			log.error("Error Connecting Server:" + e);
 		}   
 		
@@ -285,9 +288,6 @@ public class CentralServer {
 	
 	public static void main(String[] args) throws Exception {
 		String xml = "";
-		
-		
-
 		//CentralServer.postXmlResults("http://10.0.0.72:1234/cgi-bin/simonpost.cgi", testPoints, new Country("XX","test"));
 		for (int i=0;i<10;i++) {
 			Thread test = new Thread() {
