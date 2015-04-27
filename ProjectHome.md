@@ -1,0 +1,1 @@
+This is an applet for measuring latency from user perspective, by using a java applet.
